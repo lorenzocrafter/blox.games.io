@@ -174,3 +174,22 @@ body {
     height: auto;
     display: block;
 }
+/* --- NUEVAS ANIMACIONES --- */
+.game-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer; /* Hace que salga la manito */
+}
+
+.game-card:hover {
+    transform: translateY(-10px) scale(1.02); /* Efecto de flotar */
+    box-shadow: 0 15px 25px rgba(140, 29, 203, 0.6); /* Brillo morado */
+}
+
+.category-buttons .btn {
+    transition: all 0.3s ease;
+}
+
+.category-buttons .btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 10px #e0b0ff;
+}
