@@ -1,0 +1,176 @@
+body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background-color: #1a0a2e; /* Color de fondo oscuro similar al de la imagen */
+    color: #fff;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Navbar */
+.navbar {
+    background-color: #1a0a2e;
+    padding: 15px 0;
+    border-bottom: 1px solid #332145;
+}
+
+.navbar .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.navbar .logo img {
+    height: 40px;
+}
+
+.navbar .nav-links a {
+    color: #fff;
+    text-decoration: none;
+    margin-left: 30px;
+    font-weight: 600;
+    position: relative;
+    padding-bottom: 5px;
+}
+
+.navbar .nav-links a.active {
+    color: #e0b0ff; /* Un color morado más claro para el activo */
+}
+
+.navbar .nav-links a.active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #e0b0ff;
+}
+
+.navbar .nav-links .arrow-down {
+    font-size: 12px;
+    margin-left: 5px;
+    vertical-align: middle;
+}
+
+/* Hero Section */
+.hero-section {
+    background: radial-gradient(circle at center, rgba(140, 29, 203, 0.4) 0%, rgba(26, 10, 46, 0.8) 70%, rgba(26, 10, 46, 1) 100%),
+                url('https://i.ibb.co/3zd55rG/circuit-background.png') no-repeat center center/cover;
+    padding: 80px 0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 1;
+}
+
+.hero-content img {
+    max-width: 60%;
+    height: auto;
+}
+
+/* Category Buttons */
+.category-buttons {
+    margin-top: 40px;
+    margin-bottom: 30px;
+    display: flex;
+    gap: 15px;
+}
+
+.category-buttons .btn {
+    background-color: #332145;
+    color: #fff;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+}
+
+.category-buttons .btn.active {
+    background-color: #8c1dcb;
+}
+
+.category-buttons .btn:hover {
+    background-color: #553e6e;
+}
+
+/* Section Header (Popular, New Releases, etc.) */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #332145;
+}
+
+.section-header .subsection-nav a {
+    color: #7f6e91;
+    text-decoration: none;
+    margin-right: 30px;
+    font-weight: 600;
+    position: relative;
+    padding-bottom: 5px;
+}
+
+.section-header .subsection-nav a.active {
+    color: #e0b0ff;
+}
+
+.section-header .subsection-nav a.active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #e0b0ff;
+}
+
+.section-header .header-icons span {
+    color: #7f6e91;
+    font-size: 24px;
+    margin-left: 20px;
+    cursor: pointer;
+}
+
+/* Game Cards */
+.section-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 25px;
+    color: #fff;
+}
+
+.game-cards {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto; /* Para desplazamiento horizontal si hay muchas tarjetas */
+    padding-bottom: 20px; /* Espacio para la barra de desplazamiento */
+}
+
+.game-card {
+    flex: 0 0 auto; /* No se encoge, no crece, tamaño automático */
+    width: 300px; /* Ancho fijo para las tarjetas */
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
+    background-color: #2b1b3f; /* Fondo de la tarjeta */
+}
+
+.game-card img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
