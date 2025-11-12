@@ -1,7 +1,7 @@
 body {
     margin: 0;
     font-family: 'Poppins', sans-serif;
-    background-color: #1a0a2e; /* Color de fondo oscuro similar al de la imagen */
+    background-color: #1a0a2e;
     color: #fff;
 }
 
@@ -38,7 +38,7 @@ body {
 }
 
 .navbar .nav-links a.active {
-    color: #e0b0ff; /* Un color morado más claro para el activo */
+    color: #e0b0ff;
 }
 
 .navbar .nav-links a.active::after {
@@ -94,7 +94,7 @@ body {
     cursor: pointer;
     font-size: 16px;
     font-weight: 600;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease; /* Animación añadida */
 }
 
 .category-buttons .btn.active {
@@ -103,9 +103,11 @@ body {
 
 .category-buttons .btn:hover {
     background-color: #553e6e;
+    transform: scale(1.1); /* Animación añadida */
+    box-shadow: 0 0 10px #e0b0ff; /* Animación añadida */
 }
 
-/* Section Header (Popular, New Releases, etc.) */
+/* Section Header */
 .section-header {
     display: flex;
     justify-content: space-between;
@@ -156,40 +158,28 @@ body {
 .game-cards {
     display: flex;
     gap: 20px;
-    overflow-x: auto; /* Para desplazamiento horizontal si hay muchas tarjetas */
-    padding-bottom: 20px; /* Espacio para la barra de desplazamiento */
+    overflow-x: auto;
+    padding-bottom: 20px;
 }
 
 .game-card {
-    flex: 0 0 auto; /* No se encoge, no crece, tamaño automático */
-    width: 300px; /* Ancho fijo para las tarjetas */
+    flex: 0 0 auto;
+    width: 300px;
     border-radius: 15px;
     overflow: hidden;
     box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
-    background-color: #2b1b3f; /* Fondo de la tarjeta */
+    background-color: #2b1b3f;
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Animación añadida */
+    cursor: pointer;
+}
+
+.game-card:hover {
+    transform: translateY(-10px) scale(1.02); /* Animación añadida: Flotar */
+    box-shadow: 0 15px 25px rgba(140, 29, 203, 0.6); /* Animación añadida: Brillo */
 }
 
 .game-card img {
     width: 100%;
     height: auto;
     display: block;
-}
-/* --- NUEVAS ANIMACIONES --- */
-.game-card {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    cursor: pointer; /* Hace que salga la manito */
-}
-
-.game-card:hover {
-    transform: translateY(-10px) scale(1.02); /* Efecto de flotar */
-    box-shadow: 0 15px 25px rgba(140, 29, 203, 0.6); /* Brillo morado */
-}
-
-.category-buttons .btn {
-    transition: all 0.3s ease;
-}
-
-.category-buttons .btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 0 10px #e0b0ff;
 }
