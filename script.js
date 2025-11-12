@@ -1,16 +1,12 @@
-function seleccionarJuego(nombreJuego) {
-    alert("¡Iniciando " + nombreJuego + "! 🎮 Preparando motores...");
-    // Aquí en el futuro podrías redirigir a otra página real
+function seleccionarJuego(nombre) {
+    alert("Has seleccionado: " + nombre);
 }
 
-// Esto hace que los botones de categoría cambien de color al hacer clic
+// Esto hace que los botones cambien de color
 const botones = document.querySelectorAll('.btn');
-
 botones.forEach(boton => {
     boton.addEventListener('click', function() {
-        // Quitar la clase 'active' a todos
         botones.forEach(b => b.classList.remove('active'));
-        // Poner la clase 'active' al que clickeaste
         this.classList.add('active');
     });
 });
