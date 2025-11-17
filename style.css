@@ -73,8 +73,11 @@ body {
 }
 
 .hero-content img {
-    max-width: 60%;
-    height: auto;
+    max-width: 60%; /* Ya lo tenías, limita el ancho */
+    height: auto;   /* Asegura que la altura se ajuste automáticamente */
+    max-height: 50vh; /* ¡NUEVO! Limita la altura máxima al 50% de la ventana */
+    display: block; /* Asegura que no haya espacios extra debajo */
+    margin: 0 auto; /* Centra la imagen si el max-width es menor que el contenedor */
 }
 
 /* Category Buttons */
