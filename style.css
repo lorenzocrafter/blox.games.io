@@ -25,7 +25,8 @@ body {
 }
 
 .navbar .logo img {
-    height: 40px;
+    height: 60px; /* Un poco más grande para que se vea mejor */
+    width: auto; /* Asegura que el ancho se ajuste proporcionalmente */
 }
 
 .navbar .nav-links a {
@@ -59,8 +60,8 @@ body {
 
 /* Hero Section */
 .hero-section {
-    background: radial-gradient(circle at center, rgba(140, 29, 203, 0.4) 0%, rgba(26, 10, 46, 0.8) 70%, rgba(26, 10, 46, 1) 100%),
-                url('https://i.ibb.co/3zd55rG/circuit-background.png') no-repeat center center/cover;
+    background: linear-gradient(to bottom, rgba(26, 10, 46, 0.8) 0%, rgba(26, 10, 46, 0.8) 100%),
+                url('fondo_circuito.jpg') no-repeat center center/cover;
     padding: 80px 0;
     text-align: center;
     position: relative;
