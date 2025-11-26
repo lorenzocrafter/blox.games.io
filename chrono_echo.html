@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chrono-Echo: Invasión | Blox Games</title>
+    <title>Chrono-Echo: Neon Warfare | Blox Games</title>
     <style>
         body {
             margin: 0;
-            background-color: #0a0a14; /* Fondo más oscuro */
+            background-color: #050505;
             color: #fff;
             font-family: 'Courier New', Courier, monospace;
             display: flex;
@@ -21,17 +21,18 @@
         h1 {
             margin: 0 0 10px 0;
             text-transform: uppercase;
-            letter-spacing: 3px;
-            color: #4d9eff;
-            text-shadow: 0 0 10px rgba(77, 158, 255, 0.5);
-            font-size: 24px;
+            letter-spacing: 4px;
+            color: #00fff2;
+            text-shadow: 0 0 15px #00fff2;
+            font-size: 28px;
+            z-index: 2;
         }
 
         #gameContainer {
             position: relative;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
-            border: 3px solid #222;
-            background-image: radial-gradient(circle at center, #1a1a2e 0%, #000 100%);
+            box-shadow: 0 0 50px rgba(0, 255, 242, 0.15);
+            border: 2px solid #333;
+            background-color: #0a0a10;
         }
 
         canvas {
@@ -41,11 +42,14 @@
 
         #ui {
             position: absolute;
-            top: 10px;
-            left: 10px;
-            font-size: 18px;
+            top: 15px;
+            left: 15px;
+            font-size: 20px;
+            font-weight: bold;
             pointer-events: none;
-            text-shadow: 1px 1px 2px black;
+            color: #fff;
+            text-shadow: 2px 2px 0 #000;
+            z-index: 5;
         }
 
         #gameOverScreen {
@@ -54,59 +58,61 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(50, 0, 0, 0.9); /* Fondo rojizo al morir */
+            background: rgba(0, 0, 0, 0.85);
             display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             z-index: 10;
+            backdrop-filter: blur(4px);
         }
 
         button {
-            background: #4d9eff;
-            border: 1px solid #fff;
-            color: #fff;
-            padding: 12px 25px;
+            background: transparent;
+            border: 2px solid #00fff2;
+            color: #00fff2;
+            padding: 15px 30px;
             font-size: 18px;
             cursor: pointer;
             font-family: inherit;
             font-weight: bold;
             text-transform: uppercase;
             margin-top: 25px;
-            box-shadow: 0 0 10px #4d9eff;
+            box-shadow: 0 0 15px rgba(0, 255, 242, 0.2);
+            transition: all 0.2s;
         }
 
         button:hover {
-            background: #fff;
-            color: #1a1a2e;
+            background: #00fff2;
+            color: #000;
+            box-shadow: 0 0 30px rgba(0, 255, 242, 0.6);
         }
         
         .instructions {
-            font-size: 12px; opacity: 0.8; margin-top: 5px; text-align: center;
-            color: #aaa;
+            font-size: 12px; opacity: 0.6; margin-top: 10px; text-align: center;
+            color: #aaa; z-index: 2;
         }
     </style>
 </head>
 <body>
 
-    <h1>Chrono-Echo: Invasión</h1>
+    <h1>Chrono-Echo</h1>
 
     <div id="gameContainer">
         <canvas id="gameCanvas" width="700" height="500"></canvas>
-        <div id="ui">Orbes: <span id="scoreVal">0</span></div>
+        <div id="ui">Ecos Activos: <span id="scoreVal">0</span></div>
         
         <div id="gameOverScreen">
-            <h2 style="color: #ff3333; font-size: 32px; margin-bottom: 10px;">FIN DEL BUCLE</h2>
-            <p id="deathCause" style="color: #ffaaaa;">Causa de muerte desconocida</p>
-            <p>Orbes recolectados: <span id="finalScore">0</span></p>
-            <button onclick="resetGame()">Reintentar Misión</button>
+            <h2 style="color: #ff2a2a; font-size: 40px; margin: 0; text-shadow: 0 0 20px red;">PARADOJA</h2>
+            <p id="deathCause" style="color: #fff; opacity: 0.8; font-style: italic;">...</p>
+            <p style="font-size: 20px; margin-top: 10px;">Puntuación: <span id="finalScore" style="color:#00fff2">0</span></p>
+            <button onclick="resetGame()">Reiniciar Sistema</button>
         </div>
     </div>
 
     <p class="instructions">
-        [WASD / FLECHAS]: Moverse <br>
-        [ESPACIO]: Disparar <br>
-        Objetivo: Recoge Orbes Azules. Evita a los Zombies Rojos y a tus propios Ecos pasados.
+        [WASD] Moverse &nbsp;|&nbsp; [ESPACIO] Disparar <br>
+        Sobrevive. Mata Zombies. Evita tu pasado.
     </p>
 
 <script>
@@ -118,41 +124,41 @@
     const gameOverScreen = document.getElementById('gameOverScreen');
 
     // --- Configuración Global ---
-    const TILE_SIZE = 24; // Tamaño base para los sprites
+    const TILE_SIZE = 24; 
     let isGameOver = false;
     let score = 0;
     let frames = 0;
 
-    // --- El Jugador ---
+    // --- Jugador ---
     let player = { 
-        x: canvas.width/2, 
-        y: canvas.height/2, 
+        x: canvas.width/2, y: canvas.height/2, 
         speed: 4, 
-        color: '#4d9eff', // Azul soldado
-        lastDir: {x: 1, y: 0} // Para saber dónde disparar si está quieto
+        color: '#00fff2', // Cyan neon
+        lastDir: {x: 1, y: 0} 
     };
     let velocity = { x: 0, y: 0 };
 
-    // --- Sistema de Grabación (Ecos) ---
-    // currentRecording guardará objetos: { x, y, didShoot (booleano) }
+    // --- Sistema de Grabación ---
     let currentRecording = []; 
-    // echoes será un array de recordings completas
     let echoes = []; 
 
-    // --- Objetos del Mundo ---
-    let goal = { x: 0, y: 0, size: 18, active: false };
+    // --- Objetos ---
+    let goal = { x: 0, y: 0, size: 12, active: false, pulse: 0 };
     let bullets = [];
     let enemies = [];
-    let enemySpawnRate = 100; // Frames entre spawns de zombies (menor = más difícil)
+    let particles = []; // Array para las explosiones
+    
+    // Balanceo
+    let enemySpawnRate = 120; // Empieza más lento
 
     // --- Input ---
     const keys = {};
-    let spacePressedPreviously = false; // Para detectar el "tap" de disparo único
+    let spacePressedPreviously = false;
 
     window.addEventListener('keydown', (e) => keys[e.key] = true);
     window.addEventListener('keyup', (e) => keys[e.key] = false);
 
-    // --- Funciones Auxiliares ---
+    // --- Helpers ---
     function checkCollision(rect1, rect2, size1, size2) {
         return (
             rect1.x < rect2.x + size2 &&
@@ -160,6 +166,39 @@
             rect1.y < rect2.y + size2 &&
             rect1.y + size1 > rect2.y
         );
+    }
+
+    // --- Partículas (Efectos Visuales) ---
+    function spawnParticles(x, y, color, amount, speedVar) {
+        for(let i=0; i<amount; i++) {
+            particles.push({
+                x: x, y: y,
+                vx: (Math.random() - 0.5) * speedVar,
+                vy: (Math.random() - 0.5) * speedVar,
+                life: 1.0, // Opacidad de 1 a 0
+                color: color,
+                size: Math.random() * 3 + 2
+            });
+        }
+    }
+
+    function updateParticles() {
+        for(let i = particles.length - 1; i >= 0; i--) {
+            let p = particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.life -= 0.03; // Se desvanecen
+            if(p.life <= 0) particles.splice(i, 1);
+        }
+    }
+
+    function drawParticles() {
+        particles.forEach(p => {
+            ctx.globalAlpha = p.life;
+            ctx.fillStyle = p.color;
+            ctx.fillRect(p.x, p.y, p.size, p.size);
+        });
+        ctx.globalAlpha = 1.0;
     }
 
     function spawnGoal() {
@@ -171,74 +210,94 @@
     function spawnEnemy() {
         let side = Math.floor(Math.random() * 4);
         let x, y;
+        // Spawnean un poco más lejos del borde para que no aparezcan de la nada
+        const buffer = 30;
         switch(side) {
-            case 0: x = -TILE_SIZE; y = Math.random() * canvas.height; break; // Izquierda
-            case 1: x = canvas.width; y = Math.random() * canvas.height; break; // Derecha
-            case 2: x = Math.random() * canvas.width; y = -TILE_SIZE; break; // Arriba
-            case 3: x = Math.random() * canvas.width; y = canvas.height; break; // Abajo
+            case 0: x = -buffer; y = Math.random() * canvas.height; break; 
+            case 1: x = canvas.width + buffer; y = Math.random() * canvas.height; break; 
+            case 2: x = Math.random() * canvas.width; y = -buffer; break; 
+            case 3: x = Math.random() * canvas.width; y = canvas.height + buffer; break; 
         }
         enemies.push({
-            x: x, y: y, speed: Math.random() * 1.5 + 1, color: '#c92a2a'
+            x: x, y: y, speed: Math.random() * 1.2 + 0.8, color: '#ff2a2a'
         });
     }
 
     function shoot(shooterX, shooterY, dirX, dirY, isEchoShot) {
-        let vx = dirX * 8;
-        let vy = dirY * 8;
-        // Si no se mueve, dispara a la derecha por defecto
-        if (vx === 0 && vy === 0) vx = 8; 
+        let vx = dirX * 9;
+        let vy = dirY * 9;
+        if (vx === 0 && vy === 0) vx = 9; 
         
         bullets.push({
-            x: shooterX + TILE_SIZE/2 - 4, // Centrar bala
-            y: shooterY + TILE_SIZE/2 - 4,
-            vx: vx,
-            vy: vy,
-            size: 8,
+            x: shooterX + TILE_SIZE/2 - 3,
+            y: shooterY + TILE_SIZE/2 - 3,
+            vx: vx, vy: vy,
+            size: 6,
             isEchoShot: isEchoShot,
-            color: isEchoShot ? 'rgba(100, 200, 255, 0.5)' : '#fff'
+            // Las balas de eco son más oscuras para diferenciarlas
+            color: isEchoShot ? '#5555ff' : '#ffffff' 
         });
     }
 
     function createEcho() {
-        // Guardamos la grabación actual
         echoes.push({
             recording: JSON.parse(JSON.stringify(currentRecording)),
             currentIndex: 0,
-            color: `hsla(${Math.random() * 360}, 70%, 60%, 0.4)` // Fantasma translúcido
+            // Color varía ligeramente
+            color: `hsl(${180 + Math.random()*40}, 100%, 70%)` 
         });
-        // Reiniciamos grabación
         currentRecording = [];
-        // Incrementamos dificultad
-        if(enemySpawnRate > 30) enemySpawnRate -= 5;
+        // Dificultad progresiva
+        if(enemySpawnRate > 25) enemySpawnRate -= 8;
+        spawnParticles(player.x, player.y, '#00fff2', 15, 8); // Explosión azul al crear eco
     }
 
-    // --- Bucle Principal de Lógica ---
+    // --- Dibujo de Fondo (Grid) ---
+    function drawGrid() {
+        ctx.strokeStyle = 'rgba(0, 255, 242, 0.08)'; // Grid muy sutil
+        ctx.lineWidth = 1;
+        const gridSize = 40;
+        
+        // Simular movimiento de cámara usando el módulo de la posición del jugador
+        let offsetX = player.x % gridSize;
+        let offsetY = player.y % gridSize;
+
+        ctx.beginPath();
+        // Líneas verticales
+        for(let x = -offsetX; x < canvas.width; x += gridSize) {
+            ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height);
+        }
+        // Líneas horizontales
+        for(let y = -offsetY; y < canvas.height; y += gridSize) {
+            ctx.moveTo(0, y); ctx.lineTo(canvas.width, y);
+        }
+        ctx.stroke();
+    }
+
+    // --- Update Principal ---
     function update() {
         if (isGameOver) return;
         frames++;
 
-        // 1. Movimiento del Jugador
+        // Movimiento Jugador
         velocity.x = 0; velocity.y = 0;
         if (keys['ArrowUp'] || keys['w']) velocity.y = -player.speed;
         if (keys['ArrowDown'] || keys['s']) velocity.y = player.speed;
         if (keys['ArrowLeft'] || keys['a']) velocity.x = -player.speed;
         if (keys['ArrowRight'] || keys['d']) velocity.x = player.speed;
 
-        // Guardar última dirección para disparar
         if (velocity.x !== 0 || velocity.y !== 0) {
             player.lastDir = { x: Math.sign(velocity.x), y: Math.sign(velocity.y) };
         }
 
         player.x += velocity.x;
         player.y += velocity.y;
+        
+        // Clamp a pantalla
+        player.x = Math.max(0, Math.min(canvas.width - TILE_SIZE, player.x));
+        player.y = Math.max(0, Math.min(canvas.height - TILE_SIZE, player.y));
 
-        // Límites
-        if (player.x < 0) player.x = 0;
-        if (player.x > canvas.width - TILE_SIZE) player.x = canvas.width - TILE_SIZE;
-        if (player.y < 0) player.y = 0;
-        if (player.y > canvas.height - TILE_SIZE) player.y = canvas.height - TILE_SIZE;
-
-        // 2. Disparo del Jugador (Detectar pulsación única)
+        // Disparo
         let shotTriggered = false;
         if (keys[' '] && !spacePressedPreviously) {
             shoot(player.x, player.y, player.lastDir.x, player.lastDir.y, false);
@@ -246,32 +305,26 @@
         }
         spacePressedPreviously = keys[' '];
 
-        // 3. GRABAR Frame Actual (Posición y si disparó)
+        // Grabar
         currentRecording.push({ 
-            x: player.x, 
-            y: player.y,
-            didShoot: shotTriggered,
-            dirX: player.lastDir.x,
-            dirY: player.lastDir.y
+            x: player.x, y: player.y, didShoot: shotTriggered, 
+            dirX: player.lastDir.x, dirY: player.lastDir.y 
         });
 
-        // 4. Actualizar Balas
+        // Balas
         for (let i = bullets.length - 1; i >= 0; i--) {
             let b = bullets[i];
-            b.x += b.vx;
-            b.y += b.vy;
-            // Eliminar si sale de pantalla
+            b.x += b.vx; b.y += b.vy;
             if (b.x < -50 || b.x > canvas.width + 50 || b.y < -50 || b.y > canvas.height + 50) {
                 bullets.splice(i, 1);
             }
         }
 
-        // 5. Actualizar Enemigos (Zombies)
-        if (frames % enemySpawnRate === 0) spawnEnemy();
+        // Enemigos
+        if (frames % Math.floor(enemySpawnRate) === 0) spawnEnemy();
 
         for (let i = enemies.length - 1; i >= 0; i--) {
             let en = enemies[i];
-            // IA básica: Perseguir al jugador
             let dx = player.x - en.x;
             let dy = player.y - en.y;
             let dist = Math.sqrt(dx*dx + dy*dy);
@@ -280,145 +333,148 @@
                 en.y += (dy/dist) * en.speed;
             }
 
-            // Colisión Zombie vs Jugador (Muerte)
+            // Zombie mata jugador
             if (checkCollision(player, en, TILE_SIZE, TILE_SIZE)) {
-                gameOver("Te comió un Zombie.");
+                gameOver("Devorado por la horda.");
             }
 
-            // Colisión Zombie vs Balas
+            // Bala mata Zombie
             for (let j = bullets.length - 1; j >= 0; j--) {
                 let b = bullets[j];
-                if (checkCollision(en, b, TILE_SIZE, b.size)) {
-                    // Zombie muere, bala desaparece
+                // Hitbox un poco más grande para facilitar acertar
+                if (checkCollision(en, b, TILE_SIZE, b.size + 4)) {
+                    spawnParticles(en.x + TILE_SIZE/2, en.y + TILE_SIZE/2, '#ff2a2a', 8, 5); // Sangre
                     enemies.splice(i, 1);
                     bullets.splice(j, 1);
-                    // Romper el loop de balas porque el enemigo 'i' ya no existe
                     break; 
                 }
             }
         }
 
-
-        // 6. Colisión Jugador vs Orbe (Crear Eco)
-        if (goal.active && checkCollision(player, goal, TILE_SIZE, goal.size)) {
-            score++;
-            scoreEl.innerText = score;
-            createEcho();
-            spawnGoal();
-            goal.active = false; // Pequeña pausa en el spawn
-            setTimeout(() => goal.active = true, 500);
+        // Meta (Orbe)
+        if (goal.active) {
+            goal.pulse += 0.1; // Animación simple
+            if (checkCollision(player, goal, TILE_SIZE, goal.size)) {
+                score++;
+                scoreEl.innerText = score;
+                createEcho();
+                spawnGoal();
+                goal.active = false;
+                setTimeout(() => goal.active = true, 500);
+            }
         }
 
-        // 7. Actualizar ECOS (La magia del juego)
+        // Ecos
         for (let i = 0; i < echoes.length; i++) {
             let eco = echoes[i];
-            // Obtenemos los datos del frame actual
             let frameData = eco.recording[eco.currentIndex];
             
-            // ¿El eco disparó en este frame en el pasado?
             if (frameData.didShoot) {
                 shoot(frameData.x, frameData.y, frameData.dirX, frameData.dirY, true);
             }
 
-            // Avanzar el eco
             eco.currentIndex++;
-            if (eco.currentIndex >= eco.recording.length) {
-                eco.currentIndex = 0; // Loop
-            }
+            if (eco.currentIndex >= eco.recording.length) eco.currentIndex = 0;
 
-            // Colisión Jugador vs Cuerpo del Eco
-            // Usamos frameData porque es la posición actual del eco
-            if (checkCollision(player, frameData, TILE_SIZE, TILE_SIZE)) {
-                 // Buffer de seguridad al inicio del bucle
-                if (eco.currentIndex > 30) { 
-                     gameOver("Chocaste con tu pasado.");
+            // Colisión Jugador vs Eco (Buffer de seguridad de 60 frames/1 seg)
+            if (eco.currentIndex > 60) {
+                if (checkCollision(player, frameData, TILE_SIZE, TILE_SIZE)) {
+                     gameOver("Paradoja Temporal: Te tocaste a ti mismo.");
                 }
             }
         }
-         // Colisión Jugador vs Balas de Eco
-         for (let j = bullets.length - 1; j >= 0; j--) {
+        
+        // Balas de Eco matan jugador
+        for (let j = bullets.length - 1; j >= 0; j--) {
             let b = bullets[j];
             if (b.isEchoShot && checkCollision(player, b, TILE_SIZE, b.size)) {
-                gameOver("Te disparó tu propio Eco.");
+                spawnParticles(player.x, player.y, '#00fff2', 20, 10);
+                gameOver("Fuego Amigo (desde el pasado).");
             }
         }
+
+        updateParticles();
     }
 
-    // --- Funciones de Dibujo (Gráficos mejorados) ---
-    
-    // Dibuja un "soldado" simple usando rectángulos
+    // --- Dibujo ---
     function drawSoldier(x, y, color, isGhost) {
         ctx.save();
         ctx.translate(x, y);
-        if (isGhost) ctx.globalAlpha = 0.4;
-
-        // Cuerpo
-        ctx.fillStyle = color;
-        ctx.fillRect(4, 8, 16, 16); // Torso blindado
-        // Cabeza/Casco
-        ctx.fillStyle = isGhost ? color : '#334455'; // Casco oscuro si es real
-        ctx.fillRect(6, 0, 12, 8);
-        // Visor
-        ctx.fillStyle = '#00d4ff';
-        ctx.fillRect(8, 2, 8, 3);
-        
+        if (isGhost) {
+            ctx.globalAlpha = 0.3; // Más transparente
+            ctx.fillStyle = color;
+            ctx.fillRect(0, 0, TILE_SIZE, TILE_SIZE); // Eco es solo silueta cuadrada
+        } else {
+            // Jugador detallado
+            ctx.fillStyle = color;
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 10;
+            ctx.fillRect(4, 8, 16, 16); 
+            ctx.fillStyle = '#fff'; // Casco blanco
+            ctx.fillRect(6, 0, 12, 8);
+            ctx.fillStyle = '#000'; // Visor
+            ctx.fillRect(8, 3, 8, 2);
+            ctx.shadowBlur = 0;
+        }
         ctx.restore();
     }
 
-    // Dibuja un "zombie"
-    function drawZombie(x, y, color) {
+    function drawZombie(x, y) {
         ctx.save();
         ctx.translate(x, y);
-        // Cuerpo deforme
-        ctx.fillStyle = color;
-        ctx.fillRect(2, 6, 20, 18);
-        // Cabeza ladeada
-        ctx.fillStyle = '#8a1c1c';
-        ctx.fillRect(4, -2, 14, 10);
-        // Ojos rojos brillantes
-        ctx.fillStyle = 'yellow';
-        ctx.fillRect(6, 0, 3, 3);
-        ctx.fillRect(13, 1, 3, 3);
+        ctx.fillStyle = '#ff2a2a'; // Rojo sangre
+        ctx.fillRect(4, 6, 16, 18);
+        
+        // Ojos brillantes
+        ctx.fillStyle = '#ffff00';
+        ctx.shadowColor = '#ffff00';
+        ctx.shadowBlur = 5;
+        ctx.fillRect(6, 2, 4, 4);
+        ctx.fillRect(14, 2, 4, 4);
+        ctx.shadowBlur = 0;
         ctx.restore();
     }
 
     function draw() {
-        // Fondo con efecto de barrido
-        ctx.fillStyle = 'rgba(26, 26, 46, 0.3)'; 
+        // Limpiar
+        ctx.fillStyle = '#0a0a10';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        drawGrid(); // Fondo técnico
 
-        // Dibujar Orbe (Meta)
+        // Orbe
         if(goal.active) {
+            let s = goal.size + Math.sin(goal.pulse)*2;
+            ctx.fillStyle = '#fff';
             ctx.shadowBlur = 20;
-            ctx.shadowColor = '#00d4ff';
-            ctx.fillStyle = '#00d4ff';
+            ctx.shadowColor = '#fff';
             ctx.beginPath();
-            ctx.arc(goal.x + goal.size/2, goal.y + goal.size/2, goal.size/2, 0, Math.PI * 2);
+            ctx.arc(goal.x + 12, goal.y + 12, s/2, 0, Math.PI * 2);
             ctx.fill();
             ctx.shadowBlur = 0;
         }
 
-        // Dibujar Balas
+        // Partículas
+        drawParticles();
+
+        // Balas
         bullets.forEach(b => {
             ctx.fillStyle = b.color;
-            ctx.shadowBlur = b.isEchoShot ? 5 : 10;
-            ctx.shadowColor = b.color;
             ctx.fillRect(b.x, b.y, b.size, b.size);
-            ctx.shadowBlur = 0;
         });
 
-        // Dibujar Ecos
+        // Ecos
         echoes.forEach(eco => {
             let pos = eco.recording[eco.currentIndex];
             drawSoldier(pos.x, pos.y, eco.color, true);
         });
 
-        // Dibujar Enemigos
+        // Enemigos
         enemies.forEach(en => {
-            drawZombie(en.x, en.y, en.color);
+            drawZombie(en.x, en.y);
         });
 
-        // Dibujar Jugador (siempre al final para estar arriba)
+        // Jugador
         drawSoldier(player.x, player.y, player.color, false);
     }
 
@@ -429,7 +485,7 @@
     }
 
     function gameOver(cause) {
-        if(isGameOver) return; // Evitar múltiples llamadas
+        if(isGameOver) return;
         isGameOver = true;
         deathCauseEl.innerText = cause;
         finalScoreEl.innerText = score;
@@ -442,7 +498,8 @@
         score = 0;
         scoreEl.innerText = '0';
         frames = 0;
-        enemySpawnRate = 100;
+        enemySpawnRate = 120;
+        particles = [];
         
         player.x = canvas.width/2;
         player.y = canvas.height/2;
