@@ -151,39 +151,69 @@ body {
     cursor: pointer;
 }
 
-/* Game Cards */
+/* Game Cards - MEJORADO CON GRID */
 .section-title {
     font-size: 24px;
     font-weight: 700;
     margin-bottom: 25px;
     color: #fff;
+    border-left: 4px solid #e0b0ff;
+    padding-left: 15px;
 }
 
 .game-cards {
-    display: flex;
-    gap: 20px;
-    overflow-x: auto;
-    padding-bottom: 20px;
+    display: grid;
+    /* Esto crea columnas automáticas. Mínimo 280px, máximo lo que sobre */
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+    gap: 30px;
+    padding-bottom: 40px;
 }
 
 .game-card {
-    flex: 0 0 auto;
-    width: 300px;
+    background-color: #2b1b3f;
     border-radius: 15px;
     overflow: hidden;
     box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
-    background-color: #2b1b3f;
-    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Animación añadida */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     cursor: pointer;
+    position: relative;
+    display: flex;       /* Nuevo */
+    flex-direction: column; /* Nuevo */
 }
 
 .game-card:hover {
-    transform: translateY(-10px) scale(1.02); /* Animación añadida: Flotar */
-    box-shadow: 0 15px 25px rgba(140, 29, 203, 0.6); /* Animación añadida: Brillo */
+    transform: translateY(-8px);
+    box-shadow: 0 15px 30px rgba(140, 29, 203, 0.4);
+    z-index: 2;
 }
 
 .game-card img {
     width: 100%;
-    height: auto;
+    height: 250px; /* Altura fija para uniformidad */
+    object-fit: cover; /* Recorta la imagen para llenar el hueco sin deformar */
     display: block;
+}
+
+/* Información pequeña debajo de la imagen (Opcional pero queda pro) */
+.card-info {
+    padding: 15px;
+    background: #251636;
+}
+
+.card-info h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #fff;
+}
+
+.card-info span {
+    font-size: 12px;
+    color: #e0b0ff;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+/* Efecto de ocultar tarjetas (para el filtro) */
+.game-card.hidden {
+    display: none;
 }
