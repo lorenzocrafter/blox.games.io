@@ -15,7 +15,9 @@
     <header class="navbar">
         <div class="container">
             <div class="logo">
-                <a href="#" class="logo-text">B-BOX <span>GAMES</span></a>
+                <a href="#" class="logo-text">
+                    B-BOX <span>GAMES</span>
+                </a>
             </div>
             
             <nav class="nav-links">
@@ -23,10 +25,14 @@
                 <a href="#juegos">Juegos</a>
                 <a href="ranking.html">Ranking</a>
                 
-                <div id="user-area" style="display: inline-block; margin-left: 20px;">
+                <div id="user-area" style="display: inline-block; margin-left: 20px; display:flex; align-items:center;">
+                    
+                    <div id="coinDisplay" class="coin-badge">💰 0</div>
+
                     <button id="loginBtn" class="btn" style="background: linear-gradient(45deg, #4285F4, #34A853); border:none; padding: 8px 20px; font-weight:bold; border-radius: 20px; color: white; cursor: pointer;">
                         Ingresar
                     </button>
+                    
                     <div id="userInfo" style="display: none; align-items: center; gap: 10px;">
                         <img id="userPhoto" src="" alt="User" style="width: 35px; height: 35px; border-radius: 50%; border: 2px solid #00fff2; box-shadow: 0 0 10px #00fff2;">
                         <div style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2;">
@@ -124,11 +130,10 @@
                 </div>
             </div>
 
-          <div class="game-card" data-category="accion" data-tag="popular" data-game-id="escape">
-                <div class="fav-btn" onclick="toggleFav(this, 'escape', event)">♥</div>
-                
-                <div onclick="window.location.href='escape.html'">
-                    <img src="portada_escape.jpg" alt="Escape Road">
+            <div class="game-card" data-category="accion" data-tag="popular" data-game-id="drift">
+                <div class="fav-btn" onclick="toggleFav(this, 'drift', event)">♥</div>
+                <div onclick="window.location.href='drift.html'">
+                    <img src="portada_drift.jpg" alt="Escape Road">
                     <div class="card-info">
                         <h3>Escape Road</h3>
                         <span style="color:#ffcc00">★ Viral</span>
