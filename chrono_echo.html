@@ -136,6 +136,7 @@
             <p id="deathCause" style="color: #fff; opacity: 0.8; font-style: italic;">...</p>
             <p style="font-size: 20px; margin-top: 10px;">Puntuación: <span id="finalScore" style="color:#00fff2">0</span></p>
             <button onclick="resetGame()">Reiniciar Sistema</button>
+            <a href="index.html" style="margin-top: 20px; color: #666; text-decoration: none; font-size: 14px;">Volver al Menú</a>
         </div>
     </div>
 
@@ -593,6 +594,13 @@
 
     function gameOver(cause) {
         if(isGameOver) return;
+        
+        // --- GUARDAR PUNTUACIÓN EN FIREBASE ---
+        if(window.guardarPuntaje) {
+            window.guardarPuntaje("Chrono-Echo", score);
+        }
+        // -------------------------------------
+
         isGameOver = true;
         sfx.dead(); // Sonido de muerte
         deathCauseEl.innerText = cause;
@@ -622,10 +630,13 @@
         spawnGoal();
     }
 
-    // Loop inicial (dibujar fondo hasta click)
+    // Loop inicial
     spawnGoal();
     loop();
 
 </script>
+
+<script type="module" src="script.js"></script>
+
 </body>
 </html>
