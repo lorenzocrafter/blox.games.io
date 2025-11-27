@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ranking | Blox Games</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ESTILOS EXCLUSIVOS DEL RANKING */
+        .ranking-container {
+            max-width: 800px;
+            margin: 40px auto;
+            background: #2b1b3f;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(140, 29, 203, 0.2);
+            border: 1px solid #44325e;
+        }
+
+        h2.rank-title {
+            text-align: center;
+            color: #e0b0ff;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 15px rgba(224, 176, 255, 0.5);
+        }
+
+        .score-board {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 40px;
+        }
+
+        .score-board th {
+            background: #1a0a2e;
+            color: #fff;
+            padding: 15px;
+            text-align: left;
+            font-size: 1.1rem;
+            border-bottom: 2px solid #8c1dcb;
+        }
+
+        .score-board td {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid #44325e;
+            color: #ccc;
+            font-weight: 600;
+        }
+
+        .score-board tr:hover td {
+            background: rgba(140, 29, 203, 0.2);
+            color: #fff;
+        }
+
+        .player-rank { color: #e0b0ff; font-weight: bold; }
+        .player-score { color: #00fff2; text-align: right; font-family: 'Courier New', monospace; font-size: 1.2rem; }
+        
+        .my-stats {
+            background: linear-gradient(45deg, #8c1dcb, #2b1b3f);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 40px;
+            border: 1px solid #e0b0ff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Efecto de brillo en tus stats */
+        .my-stats::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            animation: rotate 10s linear infinite;
+        }
+        @keyframes rotate { from {transform: rotate(0deg);} to {transform: rotate(360deg);} }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+            position: relative;
+            z-index: 1;
+        }
+        .stat-game { color: #fff; }
+        .stat-val { color: #00fff2; font-weight: bold; }
+
+    </style>
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="container">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="Gemini_Generated_Image_bs5ccsbs5ccsbs5c (1).png" alt="B-BOX Logo">
+                </a>
+            </div>
+            <nav class="nav-links">
+                <a href="index.html">Inicio</a>
+                <a href="index.html#juegos">Juegos</a>
+                <a href="#" class="active">Ranking</a>
+                
+                <div id="user-area" style="display: inline-block; margin-left: 20px;">
+                    <button id="loginBtn" class="btn" style="background: #4285F4; padding: 5px 15px; font-size: 14px; border:none; color:white; cursor:pointer; border-radius:4px;">
+                        G Iniciar Sesión
+                    </button>
+                    <div id="userInfo" style="display: none; align-items: center; gap: 10px;">
+                        <img id="userPhoto" src="" alt="User" style="width: 30px; height: 30px; border-radius: 50%; border: 2px solid #00fff2;">
+                        <span id="userName" style="color: #fff; font-size: 14px;"></span>
+                        <button id="logoutBtn" style="background: transparent; border: 1px solid #ff4757; color: #ff4757; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 10px;">Salir</button>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <div class="ranking-container">
+            <h2 class="rank-title">🏆 Salón de la Fama</h2>
+
+            <div class="my-stats">
+                <h3 style="margin-top:0; color:#fff; border-bottom:1px solid rgba(255,255,255,0.2); padding-bottom:10px; position:relative; z-index:1;">
+                    Tus Récords Personales
+                </h3>
+                
+                <div class="stat-row">
+                    <span class="stat-game">Chrono-Echo DX</span>
+                    <span class="stat-val" id="chrono-score">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-game">Spell Caster</span>
+                    <span class="stat-val" id="spell-score">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-game">Crossy Road</span>
+                    <span class="stat-val" id="crossy-score">0</span>
+                </div>
+            </div>
+
+            <h3 style="color:#aaa; margin-bottom:15px;">Líderes de la Temporada</h3>
+            <table class="score-board">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Jugador</th>
+                        <th>Juego Favorito</th>
+                        <th style="text-align: right;">Puntuación</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="player-rank">1</td>
+                        <td>CyberValak_01</td> <td>Chrono-Echo</td>
+                        <td class="player-score">99,999</td>
+                    </tr>
+                    <tr>
+                        <td class="player-rank">2</td>
+                        <td>LorenzoCrafter</td>
+                        <td>Spell Caster</td>
+                        <td class="player-score">88,250</td>
+                    </tr>
+                    <tr>
+                        <td class="player-rank">3</td>
+                        <td>PixelMaster</td>
+                        <td>Crossy Road</td>
+                        <td class="player-score">72,100</td>
+                    </tr>
+                    <tr>
+                        <td class="player-rank">4</td>
+                        <td>CodeWizard</td>
+                        <td>Spell Caster</td>
+                        <td class="player-score">65,800</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script>
+        // Cargar los puntajes guardados
+        document.addEventListener('DOMContentLoaded', () => {
+            const chronoBest = localStorage.getItem('chronoHighScore') || 0;
+            document.getElementById('chrono-score').innerText = chronoBest;
+
+            const spellBest = localStorage.getItem('spellHighScore') || 0;
+            document.getElementById('spell-score').innerText = spellBest;
+            
+            const crossyBest = localStorage.getItem('crossyHighScore') || 0;
+            document.getElementById('crossy-score').innerText = crossyBest;
+        });
+    </script>
+    
+    <script type="module" src="script.js"></script>
+
+</body>
+</html>
