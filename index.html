@@ -4,12 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>B-BOX Play Games</title>
-
     <link rel="icon" type="image/png" href="icon.png">
-    
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&display=swap" rel="stylesheet">
-    
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#050505">
 </head>
@@ -18,9 +15,7 @@
     <header class="navbar">
         <div class="container">
             <div class="logo">
-                <a href="#" class="logo-text">
-                    B-BOX <span>GAMES</span>
-                </a>
+                <a href="#" class="logo-text">B-BOX <span>GAMES</span></a>
             </div>
             
             <nav class="nav-links">
@@ -34,7 +29,10 @@
                     </button>
                     <div id="userInfo" style="display: none; align-items: center; gap: 10px;">
                         <img id="userPhoto" src="" alt="User" style="width: 35px; height: 35px; border-radius: 50%; border: 2px solid #00fff2; box-shadow: 0 0 10px #00fff2;">
-                        <span id="userName" style="color: #fff; font-weight: 600;"></span>
+                        <div style="display: flex; flex-direction: column; line-height: 1;">
+                            <span id="userName" style="color: #fff; font-weight: 600; font-size: 14px;"></span>
+                            <button id="editNameBtn" class="edit-name-btn">✎ Cambiar Alias</button>
+                        </div>
                         <button id="logoutBtn" style="background: rgba(255, 71, 87, 0.2); border: 1px solid #ff4757; color: #ff4757; padding: 4px 10px; border-radius: 6px; cursor: pointer;">✕</button>
                     </div>
                 </div>
@@ -48,7 +46,6 @@
         <div class="hero-content">
             <h1>JUEGA SIN <span style="color: #00fff2;">LÍMITES</span></h1>
             <p>La plataforma de minijuegos arcade definitiva. Compite, sube de nivel y domina el ranking mundial.</p>
-            
             <button onclick="document.getElementById('juegos').scrollIntoView()" style="margin-top: 30px; padding: 12px 30px; font-size: 1.1rem; background: #00fff2; color: #000; border: none; border-radius: 30px; font-weight: bold; cursor: pointer; box-shadow: 0 0 20px rgba(0, 255, 242, 0.4); transition: transform 0.2s;">
                 EXPLORAR JUEGOS ▼
             </button>
@@ -57,10 +54,17 @@
 
     <section id="juegos" class="main-content container reveal">
         
-        <div class="category-buttons">
-            <button class="btn filter-btn active" data-filter="all">Todos</button>
-            <button class="btn filter-btn" data-filter="accion">Acción</button>
-            <button class="btn filter-btn" data-filter="puzzle">Puzzles</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+            <div class="category-buttons">
+                <button class="btn filter-btn active" data-filter="all">Todos</button>
+                <button class="btn filter-btn" data-filter="accion">Acción</button>
+                <button class="btn filter-btn" data-filter="puzzle">Puzzles</button>
+            </div>
+
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" class="search-input" placeholder="Buscar juego...">
+            </div>
         </div>
 
         <div class="section-header">
@@ -69,10 +73,6 @@
                 <a href="javascript:void(0)" class="sub-filter" data-tag="nuevo">Nuevos</a>
                 <a href="javascript:void(0)" class="sub-filter" data-tag="clasico">Clásicos</a>
             </nav>
-            <div class="header-icons">
-                <span class="icon">&#9776;</span>
-                <span class="icon">&#8942;</span>
-            </div>
         </div>
 
         <h2 class="section-title">Juegos Destacados</h2>
@@ -147,7 +147,7 @@
     </section>
 
     <footer style="text-align: center; padding: 40px; color: #444; font-size: 0.8rem; margin-top: 40px;">
-        &copy; 2025 B-BOX Games. Creado con pasión.
+        &copy; 2025 B-BOX Games.
     </footer>
 
     <script type="module" src="script.js"></script>
