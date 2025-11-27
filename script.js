@@ -1,9 +1,9 @@
 // IMPORTAMOS FIREBASE
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// TU CONFIGURACIÓN (NO LA TOQUES)
+// TU CONFIGURACIÓN
 const firebaseConfig = {
   apiKey: "AIzaSyBduWRoZK8ia-UP3W-tJWtVu3_lTHKRp9M",
   authDomain: "blox-games-78e8b.firebaseapp.com",
@@ -19,16 +19,14 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
-// --- FUNCIÓN GLOBAL PARA GUARDAR PUNTOS (USANDO ALIAS) ---
+// GUARDAR PUNTOS
 window.guardarPuntaje = async (juego, puntos) => {
     const user = auth.currentUser;
     if (user) {
-        // PRIORIDAD: ¿Tiene un alias local guardado? Si no, usa el de Google.
         const alias = localStorage.getItem('customAlias') || user.displayName;
-        
         try {
             await addDoc(collection(db, "puntuaciones"), {
-                nombre: alias, // Guardamos el ALIAS, no el nombre real
+                nombre: alias,
                 foto: user.photoURL,
                 juego: juego,
                 puntos: puntos,
@@ -51,48 +49,66 @@ document.addEventListener('DOMContentLoaded', () => {
     const userName = document.getElementById('userName');
     const editNameBtn = document.getElementById('editNameBtn');
 
-    // Función para actualizar la interfaz con el nombre correcto
+    // Elementos del Nuevo Modal
+    const aliasModal = document.getElementById('aliasModal');
+    const newAliasInput = document.getElementById('newAliasInput');
+    const saveAliasBtn = document.getElementById('saveAliasBtn');
+    const cancelAliasBtn = document.getElementById('cancelAliasBtn');
+
     function updateDisplayName(googleName) {
         const storedAlias = localStorage.getItem('customAlias');
-        userName.innerText = storedAlias || googleName.split(' ')[0]; // Muestra Alias o Primer nombre
+        userName.innerText = storedAlias || googleName.split(' ')[0];
     }
 
     if(loginBtn) {
-        // Login
         loginBtn.addEventListener('click', () => {
             signInWithPopup(auth, provider).catch(e => alert("Error: " + e.message));
         });
 
-        // Logout
         logoutBtn.addEventListener('click', () => {
             signOut(auth).then(() => { 
                 localStorage.removeItem('bloxUsername');
-                // Opcional: No borramos el alias para que lo recuerde al volver
                 location.reload(); 
             });
         });
 
-        // Cambiar Alias
+        // ABRIR MODAL
         if(editNameBtn) {
             editNameBtn.addEventListener('click', () => {
-                const current = userName.innerText;
-                const newName = prompt("Ingresa tu nuevo Gamertag (Alias):", current);
-                if(newName && newName.trim() !== "") {
-                    // Guardamos en memoria local
-                    localStorage.setItem('customAlias', newName.trim());
-                    // Actualizamos visualmente
-                    userName.innerText = newName.trim();
-                }
+                aliasModal.style.display = 'flex'; // Mostrar ventana bonita
+                newAliasInput.value = userName.innerText; // Poner nombre actual
+                newAliasInput.focus();
             });
         }
 
-        // Monitor de Estado
+        // GUARDAR ALIAS (Botón del Modal)
+        saveAliasBtn.addEventListener('click', () => {
+            const newName = newAliasInput.value.trim();
+            if(newName.length > 0 && newName.length <= 12) {
+                localStorage.setItem('customAlias', newName);
+                userName.innerText = newName;
+                aliasModal.style.display = 'none'; // Cerrar ventana
+            } else {
+                alert("El nombre debe tener entre 1 y 12 caracteres.");
+            }
+        });
+
+        // CANCELAR (Botón del Modal)
+        cancelAliasBtn.addEventListener('click', () => {
+            aliasModal.style.display = 'none';
+        });
+
+        // CERRAR AL TOCAR FUERA
+        aliasModal.addEventListener('click', (e) => {
+            if (e.target === aliasModal) aliasModal.style.display = 'none';
+        });
+
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 loginBtn.style.display = 'none';
                 userInfo.style.display = 'flex';
                 userPhoto.src = user.photoURL;
-                updateDisplayName(user.displayName); // Usamos nuestra función inteligente
+                updateDisplayName(user.displayName);
                 localStorage.setItem('bloxUsername', user.displayName);
             } else {
                 loginBtn.style.display = 'inline-block';
@@ -106,28 +122,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const buttons = document.querySelectorAll('.category-buttons .btn');
     const subButtons = document.querySelectorAll('.sub-filter');
     const cards = document.querySelectorAll('.game-card');
-    
-    let currentCategory = 'all';
-    let currentTag = 'all';
-    let searchTerm = '';
+    let currentCategory = 'all'; let currentTag = 'all'; let searchTerm = '';
 
     function filterGames() {
         cards.forEach(card => {
             const cardCat = card.getAttribute('data-category');
             const cardTag = card.getAttribute('data-tag');
             const title = card.querySelector('h3').innerText.toLowerCase();
-
-            // 1. Filtro por Categoría
             const matchCat = (currentCategory === 'all' || cardCat === currentCategory);
-            
-            // 2. Filtro por Etiqueta (Nuevo/Clásico)
             let matchTag = true;
             if (currentTag !== 'all') matchTag = (cardTag === currentTag);
-
-            // 3. Filtro por Búsqueda
             const matchSearch = title.includes(searchTerm);
 
-            // Tienen que cumplirse TODAS las condiciones
             if (matchCat && matchTag && matchSearch) {
                 card.style.display = 'flex';
                 setTimeout(() => card.style.opacity = '1', 50);
@@ -138,7 +144,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Evento Búsqueda
     if(searchInput) {
         searchInput.addEventListener('input', (e) => {
             searchTerm = e.target.value.toLowerCase();
@@ -146,13 +151,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Evento Categorías
     buttons.forEach(btn => {
         btn.addEventListener('click', function() {
             buttons.forEach(b => b.classList.remove('active'));
             this.classList.add('active');
             currentCategory = this.getAttribute('data-filter');
-            // Resetear subfiltros para no confundir
             subButtons.forEach(b => b.classList.remove('active'));
             document.querySelector('.sub-filter[data-tag="all"]').classList.add('active');
             currentTag = 'all';
@@ -160,7 +163,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Evento Sub-menú
     subButtons.forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
@@ -171,7 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // --- 3. RANKING (Si estamos en esa página) ---
+    // --- 3. RANKING ---
     const tablaRanking = document.getElementById('tabla-ranking-body');
     if (tablaRanking) {
         cargarRankingGlobal();
