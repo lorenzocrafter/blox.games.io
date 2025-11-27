@@ -2,493 +2,67 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Neon Drift City | B-BOX Games</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escape Road | B-BOX Games</title>
+    <link rel="icon" type="image/png" href="icon.png">
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; overflow: hidden; background: #050505; user-select: none; }
-        .navbar { position: absolute; top: 0; width: 100%; z-index: 100; }
-        #game-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-        
-        #ui-layer {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 200;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-        }
-
-        #score-hud {
-            position: absolute; top: 80px; 
-            font-family: 'Poppins', sans-serif; font-size: 40px; font-weight: 900; 
-            color: #fff; text-shadow: 4px 4px 0 #000;
-            display: flex; gap: 20px;
-        }
-        .score-item span { color: #00fff2; }
-
-        .msg-box {
-            background: rgba(15, 10, 30, 0.9); border: 2px solid #00fff2;
-            padding: 40px; border-radius: 20px; text-align: center;
-            pointer-events: auto; display: none; backdrop-filter: blur(10px);
-            box-shadow: 0 0 50px rgba(0, 255, 242, 0.2);
-        }
-
-        button.play-btn {
-            background: #00fff2; border: none; padding: 15px 50px;
-            font-size: 24px; font-weight: bold; cursor: pointer;
-            margin-top: 20px; border-radius: 50px; text-transform: uppercase;
-            box-shadow: 0 0 20px #00fff2; transition: transform 0.1s;
-        }
-        button.play-btn:active { transform: scale(0.95); }
-        
-        /* Zonas Táctiles */
-        .touch-zone { position: absolute; top: 0; height: 100%; width: 50%; z-index: 150; }
-        #left-zone { left: 0; }
-        #right-zone { right: 0; }
-        
-        .controls-hint {
-            position: absolute; bottom: 30px; color: rgba(255,255,255,0.5);
-            font-family: 'Poppins'; font-size: 12px; text-transform: uppercase;
-            width: 100%; text-align: center; letter-spacing: 2px;
+        body { display: flex; flex-direction: column; height: 100vh; overflow: hidden; background: #000; }
+        .game-frame {
+            flex-grow: 1;
+            border: none;
+            width: 100%;
+            height: 100%;
         }
     </style>
 </head>
 <body>
-
+    
     <header class="navbar">
         <div class="container">
-            <div class="logo"><a href="index.html" class="logo-text">B-BOX <span>GAMES</span></a></div>
-            <nav class="nav-links"><a href="index.html">Volver</a></nav>
+            <div class="logo">
+                <a href="index.html" class="logo-text">B-BOX <span>GAMES</span></a>
+            </div>
+            <nav class="nav-links">
+                <a href="index.html">Volver</a>
+                <div id="user-area" style="display: inline-block; margin-left: 20px;">
+                    <div id="userInfo" style="display: none; align-items: center; gap: 10px;">
+                        <img id="userPhoto" src="" alt="User" style="width: 30px; height: 30px; border-radius: 50%; border: 2px solid #00fff2;">
+                        <span id="userName" style="color: #fff; font-weight: 600;"></span>
+                    </div>
+                </div>
+            </nav>
         </div>
     </header>
 
-    <div id="score-hud">
-        <div class="score-item">$<span id="cash">0</span></div>
-    </div>
-
-    <div id="left-zone" class="touch-zone"></div>
-    <div id="right-zone" class="touch-zone"></div>
-    <div id="game-container"></div>
-
-    <div id="ui-layer">
-        <div id="start-screen" class="msg-box" style="display: flex; flex-direction: column;">
-            <h1 style="color: #00fff2; margin: 0; font-size: 3em; line-height: 1;">NEON<br><span style="color:#fff">DRIFT</span></h1>
-            <p style="color: #aaa; margin-top: 10px;">Escapa de la ley.</p>
-            <button class="play-btn" onclick="startGame()">JUGAR</button>
-        </div>
-        <div id="game-over-screen" class="msg-box">
-            <h1 style="color: #ff4757; margin: 0;">BUSTED!</h1>
-            <p style="color: #fff;">Botín: <span id="final-score" style="color:#00fff2">$0</span></p>
-            <button class="play-btn" style="background:#ff4757; box-shadow:0 0 20px #ff4757;" onclick="resetGame()">REINTENTAR</button>
-        </div>
-        <div class="controls-hint">← IZQUIERDA | DERECHA →</div>
-    </div>
+    <iframe src="https://ubg100.github.io/games/escape-road/" class="game-frame" allowfullscreen></iframe>
 
     <script type="module">
-        import * as THREE from "https://esm.sh/three";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // --- VARIABLES ---
-        let scene, camera, renderer;
-        let player, playerBody;
-        let police = [], buildings = [], items = [], particles = [];
-        let isRunning = false;
-        let money = 0;
-        let inputs = { left: false, right: false };
-        
-        // CONFIGURACIÓN DE FÍSICA ARCADE
-        const SPEED = 0.9;
-        const TURN_SPEED = 0.06;
-        const DRIFT_FACTOR = 0.94; // Cuanto menor, más resbala (Hielo = 0.99, Asfalto = 0.9)
-        const POLICE_SPEED = 0.86;
-
-        // DOM
-        const cashEl = document.getElementById('cash');
-        const finalScoreEl = document.getElementById('final-score');
-        const startScreen = document.getElementById('start-screen');
-        const gameOverScreen = document.getElementById('game-over-screen');
-
-        function init() {
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x050505);
-            scene.fog = new THREE.FogExp2(0x050505, 0.015);
-
-            // Cámara Isométrica Dinámica
-            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 200);
-            camera.position.set(0, 30, 30);
-            camera.lookAt(0, 0, 0);
-
-            // Iluminación Neón
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-            scene.add(ambientLight);
-            
-            const dirLight = new THREE.DirectionalLight(0x00fff2, 0.8);
-            dirLight.position.set(20, 50, 20);
-            dirLight.castShadow = true;
-            dirLight.shadow.mapSize.width = 2048;
-            dirLight.shadow.mapSize.height = 2048;
-            scene.add(dirLight);
-
-            // Suelo (Grid Infinito)
-            const gridGeo = new THREE.PlaneGeometry(1000, 1000);
-            const gridMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
-            const ground = new THREE.Mesh(gridGeo, gridMat);
-            ground.rotation.x = -Math.PI / 2;
-            ground.position.y = -0.1;
-            scene.add(ground);
-
-            const gridHelper = new THREE.GridHelper(1000, 200, 0x222222, 0x222222);
-            scene.add(gridHelper);
-
-            // Renderer
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.shadowMap.enabled = true;
-            document.getElementById('game-container').appendChild(renderer.domElement);
-
-            window.addEventListener('resize', onResize);
-            setupControls();
-            generateCity();
-        }
-
-        function createCarMesh(color, isPolice) {
-            const carGroup = new THREE.Group();
-
-            // Cuerpo Principal
-            const bodyGeo = new THREE.BoxGeometry(1.8, 0.8, 4);
-            const bodyMat = new THREE.MeshPhongMaterial({ 
-                color: color, 
-                emissive: color,
-                emissiveIntensity: 0.2,
-                shininess: 100 
-            });
-            const body = new THREE.Mesh(bodyGeo, bodyMat);
-            body.position.y = 0.6;
-            body.castShadow = true;
-            carGroup.add(body);
-
-            // Cabina
-            const cabinGeo = new THREE.BoxGeometry(1.6, 0.6, 2);
-            const cabinMat = new THREE.MeshPhongMaterial({ color: 0x111111 });
-            const cabin = new THREE.Mesh(cabinGeo, cabinMat);
-            cabin.position.y = 1.2;
-            cabin.position.z = -0.2;
-            carGroup.add(cabin);
-
-            // Luces Neón
-            if(!isPolice) {
-                // Faros
-                const lightGeo = new THREE.BoxGeometry(0.4, 0.2, 0.1);
-                const lightMat = new THREE.MeshBasicMaterial({ color: 0x00fff2 });
-                const l1 = new THREE.Mesh(lightGeo, lightMat); l1.position.set(0.5, 0.6, 2.01);
-                const l2 = new THREE.Mesh(lightGeo, lightMat); l2.position.set(-0.5, 0.6, 2.01);
-                carGroup.add(l1, l2);
-                
-                // Luz trasera (Trail)
-                const trailGeo = new THREE.BoxGeometry(1.6, 0.1, 0.1);
-                const trailMat = new THREE.MeshBasicMaterial({ color: 0xff0055 });
-                const trail = new THREE.Mesh(trailGeo, trailMat);
-                trail.position.set(0, 0.6, -2.01);
-                carGroup.add(trail);
-            } else {
-                // Sirena Policía
-                const sirenGeo = new THREE.BoxGeometry(1, 0.3, 0.3);
-                const sirenMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-                const siren = new THREE.Mesh(sirenGeo, sirenMat);
-                siren.position.set(0, 1.6, -0.2);
-                carGroup.add(siren);
-                carGroup.userData.siren = siren;
-            }
-            
-            // Sombra falsa (para rendimiento)
-            const shadowGeo = new THREE.PlaneGeometry(2.2, 4.5);
-            const shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.6 });
-            const shadow = new THREE.Mesh(shadowGeo, shadowMat);
-            shadow.rotation.x = -Math.PI/2;
-            shadow.position.y = 0.1;
-            carGroup.add(shadow);
-
-            return carGroup;
-        }
-
-        function createBuilding(x, z) {
-            const height = Math.random() * 15 + 5;
-            const geo = new THREE.BoxGeometry(5, height, 5);
-            // Material Neón para bordes
-            const mat = new THREE.MeshLambertMaterial({ color: 0x111111 });
-            const building = new THREE.Mesh(geo, mat);
-            building.position.set(x, height/2, z);
-            building.castShadow = true;
-            building.receiveShadow = true;
-
-            // Bordes brillantes
-            const edges = new THREE.EdgesGeometry(geo);
-            const lineMat = new THREE.LineBasicMaterial({ color: 0x3333cc });
-            const lines = new THREE.LineSegments(edges, lineMat);
-            building.add(lines);
-
-            scene.add(building);
-            buildings.push(building);
-        }
-
-        function generateCity() {
-            // Generar bloques de ciudad
-            for(let x = -100; x <= 100; x += 20) {
-                for(let z = -100; z <= 100; z += 20) {
-                    if(Math.abs(x) < 15 && Math.abs(z) < 15) continue; // Centro libre
-                    if(Math.random() > 0.3) createBuilding(x, z);
-                    else if(Math.random() > 0.5) createItem(x, z); // Dinero
-                }
-            }
-        }
-
-        function createItem(x, z) {
-            const geo = new THREE.OctahedronGeometry(0.8);
-            const mat = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-            const item = new THREE.Mesh(geo, mat);
-            item.position.set(x, 1.5, z);
-            scene.add(item);
-            items.push(item);
-        }
-
-        function setupControls() {
-            document.addEventListener('keydown', e => {
-                if(e.key === 'ArrowLeft' || e.key === 'a') inputs.left = true;
-                if(e.key === 'ArrowRight' || e.key === 'd') inputs.right = true;
-            });
-            document.addEventListener('keyup', e => {
-                if(e.key === 'ArrowLeft' || e.key === 'a') inputs.left = false;
-                if(e.key === 'ArrowRight' || e.key === 'd') inputs.right = false;
-            });
-
-            const lZone = document.getElementById('left-zone');
-            const rZone = document.getElementById('right-zone');
-            lZone.addEventListener('touchstart', e => { e.preventDefault(); inputs.left = true; });
-            lZone.addEventListener('touchend', e => { e.preventDefault(); inputs.left = false; });
-            rZone.addEventListener('touchstart', e => { e.preventDefault(); inputs.right = true; });
-            rZone.addEventListener('touchend', e => { e.preventDefault(); inputs.right = false; });
-        }
-
-        // --- FÍSICA PERSONALIZADA DE DERRAPE ---
-        class CarPhysics {
-            constructor(mesh, speed) {
-                this.mesh = mesh;
-                this.pos = new THREE.Vector3(0, 0, 0);
-                this.velocity = new THREE.Vector3(0, 0, 0);
-                this.angle = 0;
-                this.speed = speed;
-                this.driftFactor = DRIFT_FACTOR;
-            }
-
-            update(turnInput) {
-                // Girar
-                if (turnInput !== 0) {
-                    this.angle += turnInput * TURN_SPEED;
-                    // Inclinación visual del chasis
-                    this.mesh.rotation.z = THREE.MathUtils.lerp(this.mesh.rotation.z, -turnInput * 0.2, 0.1);
-                } else {
-                    this.mesh.rotation.z = THREE.MathUtils.lerp(this.mesh.rotation.z, 0, 0.1);
-                }
-
-                // Vector de dirección hacia donde mira el coche
-                const forward = new THREE.Vector3(Math.sin(this.angle), 0, Math.cos(this.angle));
-                forward.multiplyScalar(this.speed);
-
-                // Mezclar velocidad actual con dirección nueva (Simular inercia/derrape)
-                this.velocity.lerp(forward, 0.1); // 0.1 es el factor de agarre. Menos = más hielo.
-
-                // Aplicar movimiento
-                this.pos.add(this.velocity);
-                
-                // Actualizar malla
-                this.mesh.position.copy(this.pos);
-                this.mesh.rotation.y = this.angle;
-
-                // Partículas de humo si está girando fuerte
-                if(turnInput !== 0 && frameCount % 5 === 0) spawnSmoke(this.pos, 0x555555);
-            }
-        }
-
-        function spawnSmoke(pos, color) {
-            const geo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-            const mat = new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.6 });
-            const p = new THREE.Mesh(geo, mat);
-            p.position.copy(pos);
-            p.position.y = 0.2;
-            scene.add(p);
-            particles.push({ mesh: p, life: 1.0 });
-        }
-
-        function spawnPolice() {
-            // Spawnear lejos del jugador pero en dirección
-            const angle = Math.random() * Math.PI * 2;
-            const dist = 60;
-            const spawnPos = new THREE.Vector3(
-                playerBody.pos.x + Math.sin(angle) * dist,
-                0,
-                playerBody.pos.z + Math.cos(angle) * dist
-            );
-
-            const mesh = createCar(0xffffff, true);
-            mesh.position.copy(spawnPos);
-            scene.add(mesh);
-
-            const copPhys = new CarPhysics(mesh, POLICE_SPEED);
-            copPhys.pos.copy(spawnPos);
-            police.push(copPhys);
-        }
-
-        let frameCount = 0;
-
-        function update() {
-            if(!isRunning) return;
-            frameCount++;
-
-            // 1. JUGADOR
-            let turn = 0;
-            if(inputs.left) turn = 1;
-            if(inputs.right) turn = -1;
-            playerBody.update(turn);
-
-            // Límites del mundo (Rebote simple)
-            if(Math.abs(playerBody.pos.x) > 200 || Math.abs(playerBody.pos.z) > 200) {
-                playerBody.angle += Math.PI; // Vuelta atrás
-            }
-
-            // Cámara Suave
-            const targetCam = playerBody.pos.clone().add(new THREE.Vector3(0, 30, 20));
-            camera.position.lerp(targetCam, 0.1);
-            camera.lookAt(playerBody.pos);
-
-            // 2. POLICÍA (IA Mejora: Predicción simple)
-            police.forEach((cop, i) => {
-                // Calcular ángulo hacia jugador
-                const dx = playerBody.pos.x - cop.pos.x;
-                const dz = playerBody.pos.z - cop.pos.z;
-                const targetAngle = Math.atan2(dx, dz);
-                
-                // Girar suavemente hacia el jugador
-                let deltaAngle = targetAngle - cop.angle;
-                // Normalizar ángulo
-                if (deltaAngle > Math.PI) deltaAngle -= Math.PI * 2;
-                if (deltaAngle < -Math.PI) deltaAngle += Math.PI * 2;
-
-                let turnInput = 0;
-                if (deltaAngle > 0.1) turnInput = 1;
-                if (deltaAngle < -0.1) turnInput = -1;
-
-                cop.update(turnInput);
-
-                // Sirenas
-                if(frameCount % 20 < 10) cop.mesh.userData.siren.material.color.setHex(0xff0000);
-                else cop.mesh.userData.siren.material.color.setHex(0x0000ff);
-
-                // Colisión Jugador
-                if(cop.pos.distanceTo(playerBody.pos) < 2.5) {
-                    gameOver();
-                }
-
-                // Colisión entre Policías (Explosión)
-                for(let j = i + 1; j < police.length; j++) {
-                    if(cop.pos.distanceTo(police[j].pos) < 2) {
-                        spawnSmoke(cop.pos, 0xff4400); // Explosión
-                        scene.remove(cop.mesh); scene.remove(police[j].mesh);
-                        police.splice(j, 1); police.splice(i, 1);
-                        money += 50;
-                        cashEl.innerText = money;
-                        return;
-                    }
-                }
-            });
-
-            // 3. RECOLECTABLES
-            for(let i = items.length - 1; i >= 0; i--) {
-                items[i].rotation.y += 0.05;
-                items[i].rotation.x += 0.02;
-                if(items[i].position.distanceTo(playerBody.pos) < 2.5) {
-                    scene.remove(items[i]);
-                    items.splice(i, 1);
-                    money += 100;
-                    cashEl.innerText = money;
-                    spawnSmoke(playerBody.pos, 0x00ff00);
-                }
-            }
-
-            // 4. OBSTÁCULOS (Edificios)
-            // Revisión de colisión simple caja-caja
-            const pBox = new THREE.Box3().setFromObject(player);
-            pBox.expandByScalar(-0.5); // Hitbox más pequeña para perdonar
-
-            for(let b of buildings) {
-                if(pBox.intersectsBox(new THREE.Box3().setFromObject(b))) {
-                    // Choque
-                    playerBody.velocity.multiplyScalar(-0.5); // Rebote
-                    spawnSmoke(playerBody.pos, 0xaaaaaa);
-                }
-            }
-
-            // 5. PARTICULAS
-            for(let i = particles.length - 1; i >= 0; i--) {
-                let p = particles[i];
-                p.life -= 0.05;
-                p.mesh.material.opacity = p.life;
-                p.mesh.scale.multiplyScalar(0.9);
-                if(p.life <= 0) {
-                    scene.remove(p.mesh);
-                    particles.splice(i, 1);
-                }
-            }
-
-            // Spawner
-            if(frameCount % 200 === 0) spawnPolice();
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            update();
-            renderer.render(scene, camera);
-        }
-
-        function onResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-
-        // --- ESTADOS DEL JUEGO ---
-        window.startGame = function() {
-            startScreen.style.display = 'none';
-            
-            // Limpiar
-            if(player) scene.remove(player);
-            police.forEach(p => scene.remove(p.mesh));
-            police = [];
-            
-            // Crear Jugador
-            player = createCar(0x00fff2); // Cyan
-            scene.add(player);
-            playerBody = new CarPhysics(player, SPEED);
-            
-            money = 0;
-            cashEl.innerText = 0;
-            isRunning = true;
+        const firebaseConfig = {
+            apiKey: "AIzaSyBduWRoZK8ia-UP3W-tJWtVu3_lTHKRp9M",
+            authDomain: "blox-games-78e8b.firebaseapp.com",
+            projectId: "blox-games-78e8b",
+            storageBucket: "blox-games-78e8b.firebasestorage.app",
+            messagingSenderId: "882404453394",
+            appId: "1:882404453394:web:c79ee2a8cb29a6cd837ccb",
+            measurementId: "G-BFKX5P23SN"
         };
 
-        window.resetGame = function() {
-            gameOverScreen.style.display = 'none';
-            startGame();
-        };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
 
-        function gameOver() {
-            isRunning = false;
-            gameOverScreen.style.display = 'block';
-            finalScoreEl.innerText = money;
-            if(window.guardarPuntaje) window.guardarPuntaje("Neon Drift City", money);
-        }
-
-        init();
-        animate();
-
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('userInfo').style.display = 'flex';
+                document.getElementById('userPhoto').src = user.photoURL;
+                document.getElementById('userName').innerText = user.displayName.split(' ')[0];
+            }
+        });
     </script>
 
-    <script type="module" src="script.js"></script>
 </body>
 </html>
