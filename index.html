@@ -17,16 +17,12 @@
             <div class="logo">
                 <a href="#" class="logo-text">B-BOX <span>GAMES</span></a>
             </div>
-            
             <nav class="nav-links">
                 <a href="#" class="active">Inicio</a>
                 <a href="#juegos">Juegos</a>
                 <a href="ranking.html">Ranking</a>
-                
                 <div id="user-area" style="display: inline-block; margin-left: 20px;">
-                    <button id="loginBtn" class="btn" style="background: linear-gradient(45deg, #4285F4, #34A853); border:none; padding: 8px 20px; font-weight:bold; border-radius: 20px; color: white; cursor: pointer;">
-                        Ingresar
-                    </button>
+                    <button id="loginBtn" class="btn" style="background: linear-gradient(45deg, #4285F4, #34A853); border:none; padding: 8px 20px; font-weight:bold; border-radius: 20px; color: white; cursor: pointer;">Ingresar</button>
                     <div id="userInfo" style="display: none; align-items: center; gap: 10px;">
                         <img id="userPhoto" src="" alt="User" style="width: 35px; height: 35px; border-radius: 50%; border: 2px solid #00fff2; box-shadow: 0 0 10px #00fff2;">
                         <div style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2;">
@@ -42,13 +38,10 @@
 
     <section class="hero-section">
         <canvas id="hero-particles" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></canvas>
-
         <div class="hero-content">
             <h1>JUEGA SIN <span style="color: #00fff2;">LÍMITES</span></h1>
             <p>La plataforma de minijuegos arcade definitiva. Compite, sube de nivel y domina el ranking mundial.</p>
-            <button onclick="document.getElementById('juegos').scrollIntoView()" style="margin-top: 30px; padding: 12px 30px; font-size: 1.1rem; background: #00fff2; color: #000; border: none; border-radius: 30px; font-weight: bold; cursor: pointer; box-shadow: 0 0 20px rgba(0, 255, 242, 0.4); transition: transform 0.2s;">
-                EXPLORAR JUEGOS ▼
-            </button>
+            <button onclick="document.getElementById('juegos').scrollIntoView()" style="margin-top: 30px; padding: 12px 30px; font-size: 1.1rem; background: #00fff2; color: #000; border: none; border-radius: 30px; font-weight: bold; cursor: pointer; box-shadow: 0 0 20px rgba(0, 255, 242, 0.4); transition: transform 0.2s;">EXPLORAR JUEGOS ▼</button>
         </div>
     </section>
 
@@ -59,6 +52,7 @@
                 <button class="btn filter-btn active" data-filter="all">Todos</button>
                 <button class="btn filter-btn" data-filter="accion">Acción</button>
                 <button class="btn filter-btn" data-filter="puzzle">Puzzles</button>
+                <button class="btn filter-btn" data-filter="favoritos" style="border-color: #ff4757; color: #ff4757;">Favoritos ❤️</button>
             </div>
 
             <div class="search-container">
@@ -79,91 +73,86 @@
         
         <div class="game-cards">
             
-            <div class="game-card" data-category="accion" data-tag="clasico" onclick="window.location.href='crossy_road.html'">
-                <img src="portada_crossy_road.jpg" alt="Neon Crossy Road">
-                <div class="card-info">
-                    <h3>Crossy Road</h3>
-                    <span>Clásico Arcade</span>
+            <div class="game-card" data-category="accion" data-tag="clasico" data-game-id="crossy">
+                <div class="fav-btn" onclick="toggleFav(this, 'crossy', event)">♥</div>
+                <div onclick="window.location.href='crossy_road.html'">
+                    <img src="portada_crossy_road.jpg" alt="Neon Crossy Road">
+                    <div class="card-info"><h3>Crossy Road</h3><span>Clásico Arcade</span></div>
                 </div>
             </div>
             
-            <div class="game-card" data-category="puzzle" data-tag="popular" onclick="window.location.href='spell_caster.html'">
-                <img src="portada_spell_caster.jpg" alt="Spell Caster">
-                <div class="card-info">
-                    <h3>Spell Caster</h3>
-                    <span>Popular</span>
+            <div class="game-card" data-category="puzzle" data-tag="popular" data-game-id="spell">
+                <div class="fav-btn" onclick="toggleFav(this, 'spell', event)">♥</div>
+                <div onclick="window.location.href='spell_caster.html'">
+                    <img src="portada_spell_caster.jpg" alt="Spell Caster">
+                    <div class="card-info"><h3>Spell Caster</h3><span>Popular</span></div>
                 </div>
             </div>
             
-            <div class="game-card" data-category="accion" data-tag="nuevo" onclick="window.location.href='chrono_echo.html'">
-                <img src="portada_chrono.jpg" alt="Chrono Echo">
-                <div class="card-info">
-                    <h3>Chrono-Echo</h3>
-                    <span style="color:#00fff2">★ NUEVO</span>
+            <div class="game-card" data-category="accion" data-tag="nuevo" data-game-id="chrono">
+                <div class="fav-btn" onclick="toggleFav(this, 'chrono', event)">♥</div>
+                <div onclick="window.location.href='chrono_echo.html'">
+                    <img src="portada_chrono.jpg" alt="Chrono Echo">
+                    <div class="card-info"><h3>Chrono-Echo</h3><span style="color:#00fff2">★ NUEVO</span></div>
                 </div>
             </div>
 
-            <div class="game-card" data-category="puzzle" data-tag="clasico" onclick="window.location.href='2048.html'">
-                <img src="portada_2048.jpg" alt="2048 Puzzle">
-                <div class="card-info">
-                    <h3>2048</h3>
-                    <span>Puzzle Lógico</span>
+            <div class="game-card" data-category="puzzle" data-tag="clasico" data-game-id="2048">
+                <div class="fav-btn" onclick="toggleFav(this, '2048', event)">♥</div>
+                <div onclick="window.location.href='2048.html'">
+                    <img src="portada_2048.jpg" alt="2048 Puzzle">
+                    <div class="card-info"><h3>2048</h3><span>Puzzle Lógico</span></div>
                 </div>
             </div>
 
-            <div class="game-card" data-category="puzzle" data-tag="nuevo" onclick="window.location.href='hextris.html'">
-                <img src="portada_hextris.jpg" alt="Hextris">
-                <div class="card-info">
-                    <h3>Hextris</h3>
-                    <span>Puzzle Rápido</span>
+            <div class="game-card" data-category="puzzle" data-tag="nuevo" data-game-id="hextris">
+                <div class="fav-btn" onclick="toggleFav(this, 'hextris', event)">♥</div>
+                <div onclick="window.location.href='hextris.html'">
+                    <img src="portada_hextris.jpg" alt="Hextris">
+                    <div class="card-info"><h3>Hextris</h3><span>Puzzle Rápido</span></div>
                 </div>
             </div>
 
-            <div class="game-card" data-category="accion" data-tag="popular" onclick="window.location.href='minecraft.html'">
-                <img src="portada_minecraft.jpg" alt="Minecraft Web">
-                <div class="card-info">
-                    <h3>Minecraft Web</h3>
-                    <span>Mundo Abierto</span>
+            <div class="game-card" data-category="accion" data-tag="popular" data-game-id="minecraft">
+                <div class="fav-btn" onclick="toggleFav(this, 'minecraft', event)">♥</div>
+                <div onclick="window.location.href='minecraft.html'">
+                    <img src="portada_minecraft.jpg" alt="Minecraft Web">
+                    <div class="card-info"><h3>Minecraft Web</h3><span>Mundo Abierto</span></div>
                 </div>
             </div>
 
-            <div class="game-card" data-category="accion" data-tag="clasico" onclick="window.location.href='flappy.html'">
-                <img src="portada_flappy.jpg" alt="Flappy Bird">
-                <div class="card-info">
-                    <h3>Flappy Bird</h3>
-                    <span>Arcade Difícil</span>
+            <div class="game-card" data-category="accion" data-tag="clasico" data-game-id="flappy">
+                <div class="fav-btn" onclick="toggleFav(this, 'flappy', event)">♥</div>
+                <div onclick="window.location.href='flappy.html'">
+                    <img src="portada_flappy.jpg" alt="Flappy Bird">
+                    <div class="card-info"><h3>Flappy Bird</h3><span>Arcade Difícil</span></div>
                 </div>
             </div>
 
-            <div class="game-card" data-category="accion" data-tag="clasico" onclick="window.location.href='pacman.html'">
-                <img src="portada_pacman.jpg" alt="Pacman">
-                <div class="card-info">
-                    <h3>Pacman</h3>
-                    <span>El Rey Retro</span>
+            <div class="game-card" data-category="accion" data-tag="clasico" data-game-id="pacman">
+                <div class="fav-btn" onclick="toggleFav(this, 'pacman', event)">♥</div>
+                <div onclick="window.location.href='pacman.html'">
+                    <img src="portada_pacman.jpg" alt="Pacman">
+                    <div class="card-info"><h3>Pacman</h3><span>El Rey Retro</span></div>
                 </div>
             </div>
 
         </div>
     </section>
 
-   <div id="aliasModal" class="modal-overlay">
+    <div id="aliasModal" class="modal-overlay">
         <div class="modal-content" style="border: 1px solid #7000ff; box-shadow: 0 0 40px rgba(112, 0, 255, 0.4); padding: 30px; max-width: 400px; width: 90%;">
-            
             <h3 style="color: #fff; margin: 0 0 20px 0; text-transform: uppercase; letter-spacing: 1px;">Editar Perfil</h3>
-            
             <label style="color: #aaa; font-size: 12px; display: block; margin-bottom: 5px; text-align: left;">GAMERTAG</label>
             <input type="text" id="newAliasInput" class="search-input" style="text-align: center; margin-bottom: 20px; font-weight: bold; color: #00fff2; box-sizing: border-box;" placeholder="Tu Nombre..." maxlength="12" autocomplete="off">
-            
             <label style="color: #aaa; font-size: 12px; display: block; margin-bottom: 10px; text-align: left;">ELIGE TU AVATAR</label>
             <div class="avatar-grid" style="display: flex; gap: 10px; justify-content: center; margin-bottom: 25px; flex-wrap: wrap;">
                 <img src="" id="googleAvatarOption" class="avatar-option selected" style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid #00fff2; cursor: pointer; padding: 2px;">
-                
                 <img src="https://api.dicebear.com/9.x/avataaars/svg?seed=Felix" class="avatar-option" data-src="https://api.dicebear.com/9.x/avataaars/svg?seed=Felix">
                 <img src="https://api.dicebear.com/9.x/bottts/svg?seed=Cyborg" class="avatar-option" data-src="https://api.dicebear.com/9.x/bottts/svg?seed=Cyborg">
                 <img src="https://api.dicebear.com/9.x/avataaars/svg?seed=Aneka" class="avatar-option" data-src="https://api.dicebear.com/9.x/avataaars/svg?seed=Aneka">
                 <img src="https://api.dicebear.com/9.x/shapes/svg?seed=Neon" class="avatar-option" data-src="https://api.dicebear.com/9.x/shapes/svg?seed=Neon">
             </div>
-
             <div style="display: flex; gap: 10px; justify-content: center; width: 100%;">
                 <button id="cancelAliasBtn" class="btn" style="flex: 1; background: rgba(255,255,255,0.05); border: 1px solid #555; color: #ccc; padding: 10px 0; border-radius: 10px;">Cancelar</button>
                 <button id="saveAliasBtn" class="btn" style="flex: 1; background: linear-gradient(45deg, #7000ff, #a000ff); border: none; color: white; padding: 10px 0; border-radius: 10px; font-weight: bold; box-shadow: 0 0 15px rgba(112,0,255,0.4);">Guardar</button>
@@ -171,25 +160,14 @@
         </div>
     </div>
 
-    <button id="chatToggleBtn" class="chat-toggle">💬 Chat</button>
-
+    <button id="chatToggleBtn" class="chat-toggle">💬 Chat Global</button>
     <div id="chatContainer" class="chat-container">
-        <div class="chat-header">
-            <span>SALA GENERAL</span>
-            <button id="closeChatBtn" style="background:none; border:none; color:#fff; cursor:pointer;">✕</button>
-        </div>
-        <div id="chatMessages" class="chat-messages">
-            <div class="message system"><span class="msg-content">Bienvenido al Chat de B-BOX.</span></div>
-        </div>
-        <div class="chat-input-area">
-            <input type="text" id="chatInput" placeholder="Escribe..." autocomplete="off">
-            <button id="sendBtn">➤</button>
-        </div>
+        <div class="chat-header"><span>SALA GENERAL</span><button id="closeChatBtn" style="background:none; border:none; color:#fff; cursor:pointer;">✕</button></div>
+        <div id="chatMessages" class="chat-messages"><div class="message system"><span class="msg-content">Bienvenido al Chat de B-BOX.</span></div></div>
+        <div class="chat-input-area"><input type="text" id="chatInput" placeholder="Escribe algo..." autocomplete="off"><button id="sendBtn">➤</button></div>
     </div>
 
-    <footer style="text-align: center; padding: 40px; color: #444; font-size: 0.8rem; margin-top: 40px;">
-        &copy; 2025 B-BOX Games. Creado con pasión.
-    </footer>
+    <footer style="text-align: center; padding: 40px; color: #444; font-size: 0.8rem; margin-top: 40px;">&copy; 2025 B-BOX Games.</footer>
 
     <script type="module" src="script.js"></script>
 
