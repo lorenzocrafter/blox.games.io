@@ -416,3 +416,54 @@ h2.rank-title {
     opacity: 1;
     transform: translateY(0);
 }
+
+/* --- BARRA DE BÚSQUEDA --- */
+.search-container {
+    margin-bottom: 30px;
+    position: relative;
+    max-width: 400px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px 20px;
+    padding-left: 45px; /* Espacio para el icono */
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 30px;
+    color: #fff;
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    border-color: #00fff2;
+    box-shadow: 0 0 15px rgba(0, 255, 242, 0.2);
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.search-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+    pointer-events: none;
+}
+
+/* --- BOTÓN DE EDITAR NOMBRE --- */
+.edit-name-btn {
+    background: transparent;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 2px 5px;
+    transition: color 0.2s;
+}
+
+.edit-name-btn:hover {
+    color: #00fff2;
+}
