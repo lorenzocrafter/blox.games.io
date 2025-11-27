@@ -1,7 +1,9 @@
-// IMPORTAMOS FIREBASE (Nota: Ahora sí incluye addDoc)
+const ADMIN_EMAIL = "lorenzocrafteryt@gmail.com"; // <--- ¡CAMBIA ESTO!
+
+// IMPORTAMOS FIREBASE Y HERRAMIENTAS
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, doc, getDoc, setDoc, addDoc, query, where, orderBy, limit, getDocs, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, doc, getDoc, setDoc, addDoc, deleteDoc, query, where, orderBy, limit, getDocs, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // TU CONFIGURACIÓN
 const firebaseConfig = {
@@ -19,50 +21,65 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
-// GUARDAR PUNTOS
+// --- FUNCIONES GLOBALES (ACCESIBLES DESDE HTML) ---
+
+// Guardar Puntos
 window.guardarPuntaje = async (juego, puntos) => {
     const user = auth.currentUser;
     if (user) {
         const alias = localStorage.getItem('customAlias') || user.displayName;
         const avatar = localStorage.getItem('customAvatar') || user.photoURL;
-        
         const docId = `${user.uid}_${juego.replace(/\s/g, '')}`; 
-        const docRef = doc(db, "puntuaciones", docId);
-
         try {
+            const docRef = doc(db, "puntuaciones", docId);
             const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                if (puntos <= data.puntos) return; 
-            }
-            await setDoc(docRef, {
-                nombre: alias,
-                foto: avatar,
-                juego: juego,
-                puntos: puntos,
-                fecha: new Date(),
-                uid: user.uid
-            });
-            console.log(`Récord guardado para ${alias}`);
+            if (docSnap.exists() && puntos <= docSnap.data().puntos) return;
+            await setDoc(docRef, { nombre: alias, foto: avatar, juego: juego, puntos: puntos, fecha: new Date(), uid: user.uid });
         } catch (e) { console.error(e); }
     }
 };
 
+// Favoritos (Toggle)
+window.toggleFav = (btn, gameId, event) => {
+    event.stopPropagation(); // Evitar que abra el juego al tocar el corazón
+    btn.classList.toggle('active');
+    
+    let favs = JSON.parse(localStorage.getItem('bloxFavs')) || [];
+    if (btn.classList.contains('active')) {
+        if (!favs.includes(gameId)) favs.push(gameId);
+    } else {
+        favs = favs.filter(id => id !== gameId);
+    }
+    localStorage.setItem('bloxFavs', JSON.stringify(favs));
+};
+
+// Borrar Mensaje (Solo Admin)
+window.deleteMessage = async (msgId) => {
+    if(!confirm("¿Borrar mensaje?")) return;
+    try { await deleteDoc(doc(db, "chat", msgId)); } catch(e) { alert("Error al borrar"); }
+};
+
+// Borrar Récord (Solo Admin - Para el Ranking)
+window.deleteRecord = async (docId) => {
+    if(!confirm("¿Borrar récord?")) return;
+    try { await deleteDoc(doc(db, "puntuaciones", docId)); window.location.reload(); } catch(e) { alert("Error al borrar"); }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     
-    // --- 1. GESTIÓN DE USUARIO, ALIAS Y AVATAR ---
+    // --- 1. LOGIN Y PERFIL ---
     const loginBtn = document.getElementById('loginBtn');
     const logoutBtn = document.getElementById('logoutBtn');
     const userInfo = document.getElementById('userInfo');
     const userPhoto = document.getElementById('userPhoto');
     const userName = document.getElementById('userName');
-    const editNameBtn = document.getElementById('editNameBtn');
     
+    // Modal
+    const editNameBtn = document.getElementById('editNameBtn');
     const aliasModal = document.getElementById('aliasModal');
     const newAliasInput = document.getElementById('newAliasInput');
     const saveAliasBtn = document.getElementById('saveAliasBtn');
     const cancelAliasBtn = document.getElementById('cancelAliasBtn');
-    
     const avatarOptions = document.querySelectorAll('.avatar-option');
     const googleAvatarOption = document.getElementById('googleAvatarOption');
     let selectedAvatarUrl = null;
@@ -72,35 +89,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const storedAvatar = localStorage.getItem('customAvatar');
         userName.innerText = storedAlias || user.displayName.split(' ')[0];
         userPhoto.src = storedAvatar || user.photoURL;
-        if(googleAvatarOption) {
-            googleAvatarOption.src = user.photoURL;
-            googleAvatarOption.dataset.src = user.photoURL;
+        if(googleAvatarOption) { googleAvatarOption.src = user.photoURL; googleAvatarOption.dataset.src = user.photoURL; }
+        
+        // CHECK ADMIN
+        if (user.email === ADMIN_EMAIL) {
+            document.body.classList.add('is-admin');
+            console.log("Modo Admin Activado ⚡");
         }
     }
 
     if(loginBtn) {
         loginBtn.addEventListener('click', () => signInWithPopup(auth, provider).catch(e => alert(e.message)));
-        logoutBtn.addEventListener('click', () => { 
-            signOut(auth).then(() => { 
-                localStorage.removeItem('bloxUsername');
-                location.reload(); 
-            }); 
-        });
+        logoutBtn.addEventListener('click', () => { signOut(auth).then(() => { localStorage.removeItem('bloxUsername'); location.reload(); }); });
 
-        if(editNameBtn) {
-            editNameBtn.addEventListener('click', () => {
-                aliasModal.style.display = 'flex';
-                newAliasInput.value = userName.innerText;
-                const current = localStorage.getItem('customAvatar') || auth.currentUser.photoURL;
-                selectedAvatarUrl = current;
-                avatarOptions.forEach(img => {
-                    img.classList.remove('selected');
-                    if(img.dataset.src === current || (img.id === 'googleAvatarOption' && !localStorage.getItem('customAvatar'))) {
-                        img.classList.add('selected');
-                    }
-                });
+        if(editNameBtn) editNameBtn.addEventListener('click', () => {
+            aliasModal.style.display = 'flex';
+            newAliasInput.value = userName.innerText;
+            const current = localStorage.getItem('customAvatar') || auth.currentUser.photoURL;
+            selectedAvatarUrl = current;
+            avatarOptions.forEach(img => {
+                img.classList.remove('selected');
+                if(img.dataset.src === current || (img.id === 'googleAvatarOption' && !localStorage.getItem('customAvatar'))) img.classList.add('selected');
             });
-        }
+        });
 
         avatarOptions.forEach(img => {
             img.addEventListener('click', () => {
@@ -110,21 +121,14 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        if(saveAliasBtn) {
-            saveAliasBtn.addEventListener('click', () => {
-                const newName = newAliasInput.value.trim();
-                if(newName.length > 0 && newName.length <= 12) {
-                    localStorage.setItem('customAlias', newName);
-                    userName.innerText = newName;
-                    if(selectedAvatarUrl) {
-                        localStorage.setItem('customAvatar', selectedAvatarUrl);
-                        userPhoto.src = selectedAvatarUrl;
-                    }
-                    aliasModal.style.display = 'none';
-                } else alert("Nombre inválido.");
-            });
-        }
-
+        if(saveAliasBtn) saveAliasBtn.addEventListener('click', () => {
+            const newName = newAliasInput.value.trim();
+            if(newName.length > 0 && newName.length <= 12) {
+                localStorage.setItem('customAlias', newName); userName.innerText = newName;
+                if(selectedAvatarUrl) { localStorage.setItem('customAvatar', selectedAvatarUrl); userPhoto.src = selectedAvatarUrl; }
+                aliasModal.style.display = 'none';
+            } else alert("Nombre inválido.");
+        });
         if(cancelAliasBtn) cancelAliasBtn.addEventListener('click', () => aliasModal.style.display = 'none');
 
         onAuthStateChanged(auth, (user) => {
@@ -134,80 +138,68 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('bloxUsername', user.displayName);
             } else {
                 loginBtn.style.display = 'inline-block'; userInfo.style.display = 'none';
+                document.body.classList.remove('is-admin');
             }
         });
     }
 
-    // --- 2. CHAT GLOBAL (Con Avatares) ---
-    const chatToggle = document.getElementById('chatToggleBtn');
-    const chatContainer = document.getElementById('chatContainer');
-    const closeChatBtn = document.getElementById('closeChatBtn');
-    const chatInput = document.getElementById('chatInput');
-    const sendBtn = document.getElementById('sendBtn');
-    const messagesBox = document.getElementById('chatMessages');
+    // --- 2. LOGICA DE JUEGOS, FILTROS Y FAVORITOS ---
+    const searchInput = document.getElementById('searchInput');
+    const buttons = document.querySelectorAll('.category-buttons .btn');
+    const subButtons = document.querySelectorAll('.sub-filter');
+    const cards = document.querySelectorAll('.game-card');
+    let currentCategory = 'all'; let currentTag = 'all'; let searchTerm = '';
 
-    if(chatToggle) {
-        chatToggle.addEventListener('click', () => chatContainer.classList.add('open'));
-        closeChatBtn.addEventListener('click', () => chatContainer.classList.remove('open'));
+    // Cargar corazones activos
+    const favs = JSON.parse(localStorage.getItem('bloxFavs')) || [];
+    cards.forEach(card => {
+        const gameId = card.getAttribute('data-game-id');
+        if (favs.includes(gameId)) card.querySelector('.fav-btn').classList.add('active');
+    });
 
-        const sendMessage = async () => {
-            const text = chatInput.value.trim();
-            const user = auth.currentUser;
+    function filterGames() {
+        cards.forEach(card => {
+            const cardCat = card.getAttribute('data-category');
+            const cardTag = card.getAttribute('data-tag');
+            const gameId = card.getAttribute('data-game-id');
+            const title = card.querySelector('h3').innerText.toLowerCase();
+
+            // Filtro Favoritos
+            let matchCat = true;
+            if (currentCategory === 'favoritos') {
+                const myFavs = JSON.parse(localStorage.getItem('bloxFavs')) || [];
+                matchCat = myFavs.includes(gameId);
+            } else if (currentCategory !== 'all') {
+                matchCat = (cardCat === currentCategory);
+            }
             
-            if(!user) { alert("Debes iniciar sesión para chatear."); return; }
-            if(text === "") return;
+            let matchTag = true; if (currentTag !== 'all') matchTag = (cardTag === currentTag);
+            const matchSearch = title.includes(searchTerm);
 
-            const alias = localStorage.getItem('customAlias') || user.displayName.split(' ')[0];
-            const avatar = localStorage.getItem('customAvatar') || user.photoURL;
-
-            try {
-                // Ahora guardamos también la foto en el mensaje
-                await addDoc(collection(db, "chat"), {
-                    usuario: alias,
-                    foto: avatar,
-                    mensaje: text,
-                    timestamp: serverTimestamp()
-                });
-                chatInput.value = "";
-            } catch(e) { console.error("Error chat:", e); }
-        };
-
-        sendBtn.addEventListener('click', sendMessage);
-        chatInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMessage(); });
-
-        const qChat = query(collection(db, "chat"), orderBy("timestamp", "desc"), limit(20));
-        onSnapshot(qChat, (snapshot) => {
-            messagesBox.innerHTML = '';
-            const msgs = [];
-            snapshot.forEach(doc => msgs.push(doc.data()));
-            msgs.reverse();
-
-            msgs.forEach(data => {
-                if(!data.timestamp) return;
-                const isMine = auth.currentUser && (localStorage.getItem('customAlias') === data.usuario || auth.currentUser.displayName.includes(data.usuario));
-                
-                // HTML del mensaje con Avatar
-                const div = document.createElement('div');
-                div.className = `message ${isMine ? 'mine' : ''}`;
-                // Usamos un avatar por defecto si el mensaje es viejo y no tiene foto
-                const userImg = data.foto || "https://api.dicebear.com/9.x/avataaars/svg?seed=Ghost";
-                
-                div.innerHTML = `
-                    <div style="display:flex; align-items:flex-start; gap:5px; margin-bottom:5px;">
-                        <img src="${userImg}" style="width:20px; height:20px; border-radius:50%; margin-top:2px;">
-                        <div>
-                            <span class="msg-user">${data.usuario}:</span> 
-                            <span class="msg-content">${data.mensaje}</span>
-                        </div>
-                    </div>
-                `;
-                messagesBox.appendChild(div);
-            });
-            messagesBox.scrollTop = messagesBox.scrollHeight;
+            if (matchCat && matchTag && matchSearch) {
+                card.style.display = 'flex'; setTimeout(() => card.style.opacity = '1', 50);
+            } else {
+                card.style.display = 'none'; card.style.opacity = '0';
+            }
         });
     }
 
-    // --- 3. RANKING ---
+    if(searchInput) searchInput.addEventListener('input', (e) => { searchTerm = e.target.value.toLowerCase(); filterGames(); });
+    buttons.forEach(btn => { 
+        btn.addEventListener('click', function() { 
+            buttons.forEach(b => b.classList.remove('active')); this.classList.add('active'); 
+            currentCategory = this.getAttribute('data-filter'); 
+            // Reset visual subfiltros
+            if(currentCategory === 'favoritos') {
+                subButtons.forEach(b => b.classList.remove('active'));
+                currentTag = 'all'; 
+            }
+            filterGames(); 
+        }); 
+    });
+    subButtons.forEach(btn => { btn.addEventListener('click', function(e) { e.preventDefault(); subButtons.forEach(b => b.classList.remove('active')); this.classList.add('active'); currentTag = this.getAttribute('data-tag'); filterGames(); }); });
+
+    // --- 3. RANKING (Con botón de borrar para Admin) ---
     const tablaRanking = document.getElementById('tabla-ranking-body');
     const rankTabs = document.querySelectorAll('.rank-tab');
 
@@ -223,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function cargarRanking(juegoSeleccionado) {
-        tablaRanking.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px; color:#888;">Cargando Top de ${juegoSeleccionado}... ⏳</td></tr>`;
+        tablaRanking.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px; color:#888;">Cargando... ⏳</td></tr>`;
         try {
             const q = query(collection(db, "puntuaciones"), where("juego", "==", juegoSeleccionado), orderBy("puntos", "desc"), limit(10));
             const querySnapshot = await getDocs(q);
@@ -233,50 +225,74 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = doc.data();
                 let rankIcon = `#${posicion}`;
                 if(posicion === 1) rankIcon = "🥇"; if(posicion === 2) rankIcon = "🥈"; if(posicion === 3) rankIcon = "🥉";
-                const fila = `<tr><td class="player-rank" style="font-size:1.2em;">${rankIcon}</td><td style="display:flex; align-items:center; gap:10px;"><img src="${data.foto}" style="width:24px; height:24px; border-radius:50%; border:1px solid #555;">${data.nombre}</td><td style="color:#aaa;">${data.juego}</td><td class="player-score" style="color:${posicion===1 ? '#00fff2' : '#fff'}">${data.puntos}</td></tr>`;
+                
+                // Botón de borrado (Solo visible si body tiene .is-admin)
+                const deleteBtn = `<button class="delete-btn" onclick="deleteRecord('${doc.id}')">🗑️</button>`;
+
+                const fila = `<tr>
+                    <td class="player-rank">${rankIcon}</td>
+                    <td style="display:flex; align-items:center; gap:10px;">
+                        <img src="${data.foto}" style="width:24px; height:24px; border-radius:50%;">
+                        ${data.nombre} ${deleteBtn}
+                    </td>
+                    <td>${data.juego}</td>
+                    <td class="player-score">${data.puntos}</td>
+                </tr>`;
                 tablaRanking.innerHTML += fila;
                 posicion++;
             });
-            if(querySnapshot.empty) tablaRanking.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px;">Nadie ha jugado a ${juegoSeleccionado} aún.</td></tr>`;
-        } catch (error) { console.error(error); tablaRanking.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#ff4757;">⚠️ Error al cargar.</td></tr>`; }
+            if(querySnapshot.empty) tablaRanking.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px;">Sin datos.</td></tr>`;
+        } catch (error) { console.error(error); }
     }
 
-    // --- 4. UI Y FILTROS ---
-    const searchInput = document.getElementById('searchInput');
-    const buttons = document.querySelectorAll('.category-buttons .btn');
-    const subButtons = document.querySelectorAll('.sub-filter');
-    const cards = document.querySelectorAll('.game-card');
-    let currentCategory = 'all'; let currentTag = 'all'; let searchTerm = '';
+    // --- 4. CHAT GLOBAL (Con botón de borrar para Admin) ---
+    const chatToggle = document.getElementById('chatToggleBtn');
+    const chatContainer = document.getElementById('chatContainer');
+    const closeChatBtn = document.getElementById('closeChatBtn');
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const messagesBox = document.getElementById('chatMessages');
 
-    function filterGames() {
-        cards.forEach(card => {
-            const cardCat = card.getAttribute('data-category'); const cardTag = card.getAttribute('data-tag');
-            const title = card.querySelector('h3').innerText.toLowerCase();
-            const matchCat = (currentCategory === 'all' || cardCat === currentCategory);
-            let matchTag = true; if (currentTag !== 'all') matchTag = (cardTag === currentTag);
-            const matchSearch = title.includes(searchTerm);
-            if (matchCat && matchTag && matchSearch) { card.style.display = 'flex'; setTimeout(() => card.style.opacity = '1', 50); }
-            else { card.style.display = 'none'; card.style.opacity = '0'; }
+    if(chatToggle) {
+        chatToggle.addEventListener('click', () => chatContainer.classList.add('open'));
+        closeChatBtn.addEventListener('click', () => chatContainer.classList.remove('open'));
+        const sendMessage = async () => {
+            const text = chatInput.value.trim(); const user = auth.currentUser;
+            if(!user) { alert("Inicia sesión."); return; } if(text === "") return;
+            const alias = localStorage.getItem('customAlias') || user.displayName.split(' ')[0];
+            const avatar = localStorage.getItem('customAvatar') || user.photoURL;
+            try { await addDoc(collection(db, "chat"), { usuario: alias, foto: avatar, mensaje: text, timestamp: serverTimestamp() }); chatInput.value = ""; } catch(e) { console.error(e); }
+        };
+        sendBtn.addEventListener('click', sendMessage); chatInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMessage(); });
+
+        const qChat = query(collection(db, "chat"), orderBy("timestamp", "desc"), limit(20));
+        onSnapshot(qChat, (snapshot) => {
+            messagesBox.innerHTML = ''; const msgs = []; snapshot.forEach(doc => msgs.push({id: doc.id, ...doc.data()})); msgs.reverse();
+            msgs.forEach(data => {
+                if(!data.timestamp) return; 
+                const isMine = auth.currentUser && (localStorage.getItem('customAlias') === data.usuario || auth.currentUser.displayName.includes(data.usuario));
+                
+                // Botón de borrado (Solo Admin)
+                const deleteBtn = `<button class="delete-btn" onclick="deleteMessage('${data.id}')" style="color:red; font-size:10px;">🗑️</button>`;
+
+                const div = document.createElement('div'); div.className = `message ${isMine ? 'mine' : ''}`;
+                const userImg = data.foto || "https://api.dicebear.com/9.x/avataaars/svg?seed=Ghost";
+                div.innerHTML = `
+                    <div style="display:flex; align-items:flex-start; gap:5px; margin-bottom:5px;">
+                        <img src="${userImg}" style="width:20px; height:20px; border-radius:50%; margin-top:2px;">
+                        <div>
+                            <span class="msg-user">${data.usuario} ${deleteBtn}:</span> 
+                            <span class="msg-content">${data.mensaje}</span>
+                        </div>
+                    </div>`;
+                messagesBox.appendChild(div);
+            });
+            messagesBox.scrollTop = messagesBox.scrollHeight;
         });
     }
 
-    if(searchInput) searchInput.addEventListener('input', (e) => { searchTerm = e.target.value.toLowerCase(); filterGames(); });
-    buttons.forEach(btn => { btn.addEventListener('click', function() { buttons.forEach(b => b.classList.remove('active')); this.classList.add('active'); currentCategory = this.getAttribute('data-filter'); subButtons.forEach(b => b.classList.remove('active')); document.querySelector('.sub-filter[data-tag="all"]').classList.add('active'); currentTag = 'all'; filterGames(); }); });
-    subButtons.forEach(btn => { btn.addEventListener('click', function(e) { e.preventDefault(); subButtons.forEach(b => b.classList.remove('active')); this.classList.add('active'); currentTag = this.getAttribute('data-tag'); filterGames(); }); });
-
+    // Scroll Reveal
     const revealElements = document.querySelectorAll('.reveal');
     function checkReveal() { const windowHeight = window.innerHeight; revealElements.forEach((reveal) => { const elementTop = reveal.getBoundingClientRect().top; if (elementTop < windowHeight - 50) { reveal.classList.add('active'); reveal.style.opacity = "1"; } }); }
     window.addEventListener('scroll', checkReveal); checkReveal(); setTimeout(() => { document.querySelectorAll('.reveal').forEach(el => el.style.opacity = '1'); }, 500);
-
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    let uiAudioCtx;
-    const playHoverSound = () => {
-        if (!uiAudioCtx) uiAudioCtx = new AudioContext(); if (uiAudioCtx.state === 'suspended') uiAudioCtx.resume();
-        const osc = uiAudioCtx.createOscillator(); const gain = uiAudioCtx.createGain();
-        osc.connect(gain); gain.connect(uiAudioCtx.destination);
-        osc.type = 'sine'; osc.frequency.setValueAtTime(800, uiAudioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1200, uiAudioCtx.currentTime + 0.05);
-        gain.gain.setValueAtTime(0.02, uiAudioCtx.currentTime); gain.gain.linearRampToValueAtTime(0, uiAudioCtx.currentTime + 0.05);
-        osc.start(); osc.stop(uiAudioCtx.currentTime + 0.05);
-    };
-    document.querySelectorAll('.game-card, .btn, .nav-links a, .sub-filter, .rank-tab').forEach(el => el.addEventListener('mouseenter', playHoverSound));
 });
