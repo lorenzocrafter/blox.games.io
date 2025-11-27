@@ -3,94 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ranking | Blox Games</title>
+    <title>Ranking | B-BOX Games</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <style>
-        /* ESTILOS EXCLUSIVOS DEL RANKING */
-        .ranking-container {
-            max-width: 800px;
-            margin: 40px auto;
-            background: #2b1b3f;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 0 30px rgba(140, 29, 203, 0.2);
-            border: 1px solid #44325e;
+        /* Ajuste para que el ranking baje un poco y no choque con el menú */
+        .ranking-wrapper {
+            padding-top: 60px; 
+            padding-bottom: 60px;
+            min-height: 80vh; /* Para que ocupe buena parte de la pantalla */
         }
-
-        h2.rank-title {
-            text-align: center;
-            color: #e0b0ff;
-            font-size: 2.5rem;
-            margin-bottom: 30px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-shadow: 0 0 15px rgba(224, 176, 255, 0.5);
-        }
-
-        .score-board {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 40px;
-        }
-
-        .score-board th {
-            background: #1a0a2e;
-            color: #fff;
-            padding: 15px;
-            text-align: left;
-            font-size: 1.1rem;
-            border-bottom: 2px solid #8c1dcb;
-        }
-
-        .score-board td {
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.05);
-            border-bottom: 1px solid #44325e;
-            color: #ccc;
-            font-weight: 600;
-        }
-
-        .score-board tr:hover td {
-            background: rgba(140, 29, 203, 0.2);
-            color: #fff;
-        }
-
-        .player-rank { color: #e0b0ff; font-weight: bold; }
-        .player-score { color: #00fff2; text-align: right; font-family: 'Courier New', monospace; font-size: 1.2rem; }
-        
-        .my-stats {
-            background: linear-gradient(45deg, #8c1dcb, #2b1b3f);
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 40px;
-            border: 1px solid #e0b0ff;
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* Efecto de brillo en tus stats */
-        .my-stats::before {
-            content: '';
-            position: absolute;
-            top: -50%; left: -50%;
-            width: 200%; height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
-            animation: rotate 10s linear infinite;
-        }
-        @keyframes rotate { from {transform: rotate(0deg);} to {transform: rotate(360deg);} }
-        
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 1.2rem;
-            position: relative;
-            z-index: 1;
-        }
-        .stat-game { color: #fff; }
-        .stat-val { color: #00fff2; font-weight: bold; }
-
     </style>
 </head>
 <body>
@@ -98,8 +20,8 @@
     <header class="navbar">
         <div class="container">
             <div class="logo">
-                <a href="index.html">
-                    <img src="Gemini_Generated_Image_bs5ccsbs5ccsbs5c (1).png" alt="B-BOX Logo">
+                <a href="index.html" class="logo-text">
+                    B-BOX <span>GAMES</span>
                 </a>
             </div>
             <nav class="nav-links">
@@ -108,26 +30,26 @@
                 <a href="#" class="active">Ranking</a>
                 
                 <div id="user-area" style="display: inline-block; margin-left: 20px;">
-                    <button id="loginBtn" class="btn" style="background: #4285F4; padding: 5px 15px; font-size: 14px; border:none; color:white; cursor:pointer; border-radius:4px;">
-                        G Iniciar Sesión
+                    <button id="loginBtn" class="btn" style="background: linear-gradient(45deg, #4285F4, #34A853); border:none; padding: 8px 20px; font-weight:bold; border-radius: 20px; color: white; cursor: pointer;">
+                        Ingresar
                     </button>
                     <div id="userInfo" style="display: none; align-items: center; gap: 10px;">
-                        <img id="userPhoto" src="" alt="User" style="width: 30px; height: 30px; border-radius: 50%; border: 2px solid #00fff2;">
-                        <span id="userName" style="color: #fff; font-size: 14px;"></span>
-                        <button id="logoutBtn" style="background: transparent; border: 1px solid #ff4757; color: #ff4757; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 10px;">Salir</button>
+                        <img id="userPhoto" src="" alt="User" style="width: 35px; height: 35px; border-radius: 50%; border: 2px solid #00fff2; box-shadow: 0 0 10px #00fff2;">
+                        <span id="userName" style="color: #fff; font-weight: 600;"></span>
+                        <button id="logoutBtn" style="background: rgba(255, 71, 87, 0.2); border: 1px solid #ff4757; color: #ff4757; padding: 4px 10px; border-radius: 6px; cursor: pointer;">✕</button>
                     </div>
                 </div>
             </nav>
         </div>
     </header>
 
-    <div class="container">
+    <div class="container ranking-wrapper">
         
         <div class="ranking-container">
-            <h2 class="rank-title">🏆 Salón de la Fama</h2>
+            <h2 class="rank-title">🏆 SALÓN DE LA FAMA</h2>
 
             <div class="my-stats">
-                <h3 style="margin-top:0; color:#fff; border-bottom:1px solid rgba(255,255,255,0.2); padding-bottom:10px; position:relative; z-index:1;">
+                <h3 style="margin-top:0; color:#fff; border-bottom:1px solid rgba(255,255,255,0.2); padding-bottom:10px;">
                     Tus Récords Personales (Local)
                 </h3>
                 
@@ -143,9 +65,13 @@
                     <span class="stat-game">Crossy Road</span>
                     <span class="stat-val" id="crossy-score">0</span>
                 </div>
+                <div class="stat-row">
+                    <span class="stat-game">Neon Snake</span>
+                    <span class="stat-val" id="snake-score">0</span>
+                </div>
             </div>
 
-            <h3 style="color:#aaa; margin-bottom:15px;">Top 10 Mundial (En Tiempo Real)</h3>
+            <h3 style="color:#888; margin-bottom:15px; text-align: center; text-transform: uppercase; letter-spacing: 1px;">Top 10 Mundial (En Tiempo Real)</h3>
             <table class="score-board">
                 <thead>
                     <tr>
@@ -157,7 +83,7 @@
                 </thead>
                 <tbody id="tabla-ranking-body">
                     <tr>
-                        <td colspan="4" style="text-align: center; padding: 30px; color: #888;">
+                        <td colspan="4" style="text-align: center; padding: 30px; color: #666;">
                             Conectando con el servidor... ☁️
                         </td>
                     </tr>
@@ -166,6 +92,10 @@
         </div>
 
     </div>
+
+    <footer style="text-align: center; padding: 40px; color: #444; font-size: 0.8rem;">
+        &copy; 2025 B-BOX Games.
+    </footer>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -177,6 +107,11 @@
             
             const crossyBest = localStorage.getItem('crossyHighScore') || 0;
             document.getElementById('crossy-score').innerText = crossyBest;
+
+            const snakeBest = localStorage.getItem('snakeHighScore') || 0;
+            if(document.getElementById('snake-score')) {
+                document.getElementById('snake-score').innerText = snakeBest;
+            }
         });
     </script>
     
