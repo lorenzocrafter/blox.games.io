@@ -16,7 +16,7 @@
   }
 </script>
     <style>
-        /* --- CSS CORREGIDO Y APLANADO --- */
+        /* --- CSS ORIGINAL --- */
         :root {
             --font-body: "Tinos", serif;
             --font-heading: "Henny Penny", cursive;
@@ -637,7 +637,7 @@
     </svg>
 
     <div class="app">
-      <div class="canvas"></div>     
+      <div class="canvas"></div>      
       <div class="top-bar">
         <div class="left">
           <div class="health" id="health-bar" data-show-on="GAME_RUNNING,PAUSED,SPELL_OVERLAY">
@@ -814,7 +814,7 @@
         <div data-screen="PAUSED" class="paused">
           <div class="content">
             <button data-fade data-send="resume">Resume</button>
-            <button data-fade class="simple" data-send="end">Back to menu</button>
+            <button data-fade class="simple" onclick="window.location.href='index.html'">Back to menu</button>
           </div>
         </div>
 
@@ -828,6 +828,8 @@
           <div class="content">
             <h2 data-fade data-split>Game Over</h2>
             <button data-fade data-send="restart">Try again</button>
+            <button data-fade class="simple" onclick="window.location.href='index.html'" style="margin-top: 10px;">Back to menu</button>
+            
             <ul class="button-row">
               <li><button data-fade class="simple" data-send="instructions">Instructions</button></li>
               <li><button data-fade class="simple" data-send="endless">Endless mode</button></li>
@@ -841,6 +843,8 @@
             
             <h2 data-fade>You did it!</h2>
             <button data-fade data-send="restart">Play again</button>
+            <button data-fade class="simple" onclick="window.location.href='index.html'" style="margin-top: 10px;">Back to menu</button>
+
             <ul class="button-row">
               <li><button data-fade class="simple" data-send="instructions">Instructions</button></li>
               <li><button data-fade class="simple" data-send="endless">Endless mode</button></li>
@@ -875,6 +879,43 @@
     </div>
 
     <script type="module" src="spell_game.js"></script>
+
+    <script type="module">
+        // Vigilamos los cambios en el cuerpo de la página
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                // Si cambia el atributo data-state (estado del juego)
+                if (mutation.type === "attributes" && mutation.attributeName === "data-state") {
+                    const state = document.body.getAttribute("data-state");
+                    
+                    // Si el juego termina (Ganar o Perder)
+                    if (state === "GAME_OVER" || state === "WINNER") {
+                        // Buscamos cuántos demonios mataste (el juego lo muestra en un span)
+                        const countElement = document.querySelector('[data-demon-count]');
+                        if (countElement) {
+                            const demonsKilled = parseInt(countElement.innerText) || 0;
+                            // Calculamos puntos: 100 puntos por demonio
+                            const finalScore = demonsKilled * 100;
+
+                            console.log("Juego terminado. Guardando puntos:", finalScore);
+                            
+                            // Llamamos a la función global de guardado (de script.js)
+                            if (window.guardarPuntaje) {
+                                window.guardarPuntaje("Spell Caster", finalScore);
+                            }
+                        }
+                    }
+                }
+            });
+        });
+
+        // Empezar a vigilar
+        observer.observe(document.body, {
+            attributes: true // Solo nos importa si cambian los atributos
+        });
+    </script>
+
+    <script type="module" src="script.js"></script>
 
 </body>
 </html>
