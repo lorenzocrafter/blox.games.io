@@ -124,3 +124,64 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+// --- EFECTO DE PARTÍCULAS ---
+const canvas = document.getElementById('hero-particles');
+if (canvas) {
+    const ctx = canvas.getContext('2d');
+    let particlesArray;
+
+    // Ajustar tamaño
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight; // O altura del hero section
+
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 2 + 0.5; // Puntos pequeños
+            this.speedX = Math.random() * 1 - 0.5; // Movimiento lento
+            this.speedY = Math.random() * 1 - 0.5;
+            this.color = Math.random() > 0.5 ? 'rgba(0, 255, 242,' : 'rgba(112, 0, 255,'; // Cyan o Morado
+        }
+        update() {
+            this.x += this.speedX;
+            this.y += this.speedY;
+            // Rebotar en bordes (o reaparecer)
+            if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+            if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+        }
+        draw() {
+            ctx.fillStyle = this.color + Math.random() + ')'; // Parpadeo
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    function initParticles() {
+        particlesArray = [];
+        const numberOfParticles = 60; // Cantidad de partículas
+        for (let i = 0; i < numberOfParticles; i++) {
+            particlesArray.push(new Particle());
+        }
+    }
+
+    function animateParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let i = 0; i < particlesArray.length; i++) {
+            particlesArray[i].update();
+            particlesArray[i].draw();
+        }
+        requestAnimationFrame(animateParticles);
+    }
+
+    initParticles();
+    animateParticles();
+
+    // Redimensionar si cambia la ventana
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        initParticles();
+    });
+}
