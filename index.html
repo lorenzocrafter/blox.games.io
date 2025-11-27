@@ -16,8 +16,20 @@
             </div>
             <nav class="nav-links">
                 <a href="#" class="active">Inicio</a>
-                <a href="#juegos">Juegos</a> <a href="#">Ranking</a>
-                <a href="#">Contacto</a>
+                <a href="#juegos">Juegos</a>
+                <a href="ranking.html">Ranking</a>
+                
+                <div id="user-area" style="display: inline-block; margin-left: 20px;">
+                    <button id="loginBtn" class="btn" style="background: #4285F4; padding: 5px 15px; font-size: 14px; border:none; color:white; cursor:pointer; border-radius:4px;">
+                        G Iniciar Sesión
+                    </button>
+
+                    <div id="userInfo" style="display: none; align-items: center; gap: 10px;">
+                        <img id="userPhoto" src="" alt="User" style="width: 30px; height: 30px; border-radius: 50%; border: 2px solid #00fff2;">
+                        <span id="userName" style="color: #fff; font-size: 14px;"></span>
+                        <button id="logoutBtn" style="background: transparent; border: 1px solid #ff4757; color: #ff4757; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 10px;">Salir</button>
+                    </div>
+                </div>
             </nav>
         </div>
     </header>
@@ -79,7 +91,7 @@
         </div>
     </section>
 
-    <script src="script.js"></script>
+    <script type="module" src="script.js"></script>
 
 </body>
 </html>
