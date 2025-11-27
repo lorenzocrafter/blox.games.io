@@ -376,3 +376,31 @@ h2.rank-title {
     from { transform: translateY(50px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
 }
+/* ANIMACIÓN DE TÍTULO NEÓN */
+@keyframes textGlow {
+    0% { text-shadow: 0 0 10px rgba(0, 255, 242, 0.2); }
+    50% { text-shadow: 0 0 30px rgba(0, 255, 242, 0.6), 0 0 10px rgba(0, 255, 242, 0.8); }
+    100% { text-shadow: 0 0 10px rgba(0, 255, 242, 0.2); }
+}
+
+.hero-content h1 span {
+    /* Esto aplica la animación a la palabra "LÍMITES" */
+    animation: textGlow 3s infinite alternate ease-in-out;
+}
+
+/* BORDE DE COLORES ANIMADO PARA EL LOGO */
+@keyframes borderRotate {
+    0% { border-color: #00fff2; }
+    50% { border-color: #7000ff; }
+    100% { border-color: #00fff2; }
+}
+
+#userPhoto {
+    /* Hace que el borde de tu foto cambie de color */
+    animation: borderRotate 4s infinite linear;
+    transition: transform 0.3s;
+}
+
+#userPhoto:hover {
+    transform: scale(1.1) rotate(5deg);
+}
