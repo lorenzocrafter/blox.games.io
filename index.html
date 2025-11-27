@@ -146,14 +146,27 @@
         </div>
     </section>
 
-    <div id="aliasModal" class="modal-overlay">
-        <div class="modal-content" style="border: 1px solid #7000ff; box-shadow: 0 0 40px rgba(112, 0, 255, 0.4); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 30px;">
-            <h3 style="color: #fff; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 2px;">Nuevo Gamertag</h3>
-            <p style="color: #aaa; font-size: 14px; margin: 0 0 25px 0;">Escribe el nombre con el que aparecerás en el Ranking.</p>
-            <input type="text" id="newAliasInput" class="search-input" style="width: 85%; text-align: center; margin-bottom: 25px; font-weight: bold; color: #00fff2; font-size: 18px; padding: 12px; box-sizing: border-box;" placeholder="Ej: CyberWolf..." maxlength="12" autocomplete="off">
-            <div style="display: flex; gap: 15px; justify-content: center; width: 100%;">
-                <button id="cancelAliasBtn" class="btn" style="flex: 1; background: rgba(255,255,255,0.05); border: 1px solid #555; color: #ccc; padding: 10px 0; border-radius: 10px; max-width: 120px;">Cancelar</button>
-                <button id="saveAliasBtn" class="btn" style="flex: 1; background: linear-gradient(45deg, #7000ff, #a000ff); border: none; color: white; padding: 10px 0; border-radius: 10px; font-weight: bold; box-shadow: 0 0 15px rgba(112,0,255,0.4); max-width: 120px;">Guardar</button>
+   <div id="aliasModal" class="modal-overlay">
+        <div class="modal-content" style="border: 1px solid #7000ff; box-shadow: 0 0 40px rgba(112, 0, 255, 0.4); padding: 30px; max-width: 400px; width: 90%;">
+            
+            <h3 style="color: #fff; margin: 0 0 20px 0; text-transform: uppercase; letter-spacing: 1px;">Editar Perfil</h3>
+            
+            <label style="color: #aaa; font-size: 12px; display: block; margin-bottom: 5px; text-align: left;">GAMERTAG</label>
+            <input type="text" id="newAliasInput" class="search-input" style="text-align: center; margin-bottom: 20px; font-weight: bold; color: #00fff2; box-sizing: border-box;" placeholder="Tu Nombre..." maxlength="12" autocomplete="off">
+            
+            <label style="color: #aaa; font-size: 12px; display: block; margin-bottom: 10px; text-align: left;">ELIGE TU AVATAR</label>
+            <div class="avatar-grid" style="display: flex; gap: 10px; justify-content: center; margin-bottom: 25px; flex-wrap: wrap;">
+                <img src="" id="googleAvatarOption" class="avatar-option selected" style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid #00fff2; cursor: pointer; padding: 2px;">
+                
+                <img src="https://api.dicebear.com/9.x/avataaars/svg?seed=Felix" class="avatar-option" data-src="https://api.dicebear.com/9.x/avataaars/svg?seed=Felix">
+                <img src="https://api.dicebear.com/9.x/bottts/svg?seed=Cyborg" class="avatar-option" data-src="https://api.dicebear.com/9.x/bottts/svg?seed=Cyborg">
+                <img src="https://api.dicebear.com/9.x/avataaars/svg?seed=Aneka" class="avatar-option" data-src="https://api.dicebear.com/9.x/avataaars/svg?seed=Aneka">
+                <img src="https://api.dicebear.com/9.x/shapes/svg?seed=Neon" class="avatar-option" data-src="https://api.dicebear.com/9.x/shapes/svg?seed=Neon">
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: center; width: 100%;">
+                <button id="cancelAliasBtn" class="btn" style="flex: 1; background: rgba(255,255,255,0.05); border: 1px solid #555; color: #ccc; padding: 10px 0; border-radius: 10px;">Cancelar</button>
+                <button id="saveAliasBtn" class="btn" style="flex: 1; background: linear-gradient(45deg, #7000ff, #a000ff); border: none; color: white; padding: 10px 0; border-radius: 10px; font-weight: bold; box-shadow: 0 0 15px rgba(112,0,255,0.4);">Guardar</button>
             </div>
         </div>
     </div>
