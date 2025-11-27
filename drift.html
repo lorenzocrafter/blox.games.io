@@ -2,23 +2,88 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drift Boss | B-BOX Games</title>
-    <link rel="icon" type="image/png" href="icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neon Drift | B-BOX Games</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <style>
-        body { display: flex; flex-direction: column; height: 100vh; overflow: hidden; background: #000; }
-        .game-frame {
-            flex-grow: 1;
-            border: none;
-            width: 100%;
-            height: 100%;
+        body {
+            margin: 0;
+            background-color: #050505;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            touch-action: none;
+            font-family: 'Poppins', sans-serif;
         }
+
+        .navbar { flex-shrink: 0; }
+
+        #game-wrapper {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%);
+            overflow: hidden;
+        }
+
+        canvas {
+            box-shadow: 0 0 50px rgba(0, 255, 242, 0.1);
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #score-display {
+            position: absolute;
+            top: 30px;
+            font-size: 60px;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 4px 4px 0 #000;
+            z-index: 20;
+        }
+
+        .msg-box {
+            background: rgba(15, 10, 30, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid #00fff2;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(0, 255, 242, 0.3);
+            pointer-events: auto;
+            backdrop-filter: blur(10px);
+        }
+
+        button.play-btn {
+            background: linear-gradient(45deg, #00fff2, #0088ff);
+            border: none;
+            padding: 15px 40px;
+            color: #000;
+            font-weight: bold;
+            font-size: 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.2s;
+            box-shadow: 0 0 20px rgba(0, 255, 242, 0.5);
+        }
+        button.play-btn:hover { transform: scale(1.05); }
+
     </style>
 </head>
 <body>
-    
+
     <header class="navbar">
         <div class="container">
             <div class="logo">
@@ -36,32 +101,298 @@
         </div>
     </header>
 
-    <iframe src="https://www.mathplayground.com/drift-boss-v3/index.html" class="game-frame" allowfullscreen></iframe>
+    <div id="game-wrapper">
+        <div id="score-display">0</div>
+        <canvas id="gameCanvas"></canvas>
+        
+        <div id="ui-layer">
+            <div id="start-screen" class="msg-box">
+                <h2 style="color: #00fff2; margin: 0; font-size: 2em; letter-spacing: 2px;">NEON DRIFT</h2>
+                <p style="color: #aaa; margin: 10px 0 0;">Haz CLICK o ESPACIO para girar</p>
+                <button class="play-btn" onclick="startGame()">JUGAR</button>
+            </div>
+            
+            <div id="game-over-screen" class="msg-box" style="display: none;">
+                <h2 style="color: #ff4757;">CRASHED!</h2>
+                <p style="color: #fff; font-size: 1.2em;">Puntuación: <span id="final-score">0</span></p>
+                <button class="play-btn" style="background: #ff4757; color: white; box-shadow: 0 0 20px rgba(255, 71, 87, 0.5);" onclick="resetGame()">REINTENTAR</button>
+            </div>
+        </div>
+    </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score-display');
+        const startScreen = document.getElementById('start-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const finalScoreEl = document.getElementById('final-score');
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBduWRoZK8ia-UP3W-tJWtVu3_lTHKRp9M",
-            authDomain: "blox-games-78e8b.firebaseapp.com",
-            projectId: "blox-games-78e8b",
-            storageBucket: "blox-games-78e8b.firebasestorage.app",
-            messagingSenderId: "882404453394",
-            appId: "1:882404453394:web:c79ee2a8cb29a6cd837ccb",
-            measurementId: "G-BFKX5P23SN"
+        // Configuración
+        let isRunning = false;
+        let isGameOver = false;
+        let score = 0;
+        let speed = 3;
+        
+        // El coche (Simulado isométrico)
+        const car = {
+            x: 0, y: 0, 
+            width: 20, length: 34,
+            dir: 1, // 1 = Derecha-Abajo, -1 = Izquierda-Abajo
+            color: '#00fff2'
         };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
+        // Plataforma (Camino)
+        let path = [];
+        let camera = { x: 0, y: 0 };
+        const pathWidth = 60;
 
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                document.getElementById('userInfo').style.display = 'flex';
-                document.getElementById('userPhoto').src = user.photoURL;
-                document.getElementById('userName').innerText = user.displayName.split(' ')[0];
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight - 80; // Restar navbar
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Generar camino inicial
+        function initPath() {
+            path = [];
+            // Plataforma de inicio segura
+            for(let i=0; i<20; i++) {
+                path.push({ x: 0 + (i*2), y: 0 + (i*2) }); // Diagonal inicial
+            }
+            generatePath(50);
+        }
+
+        function generatePath(amount) {
+            let lastPoint = path[path.length - 1];
+            let currentDir = Math.random() > 0.5 ? 1 : -1; // 1 = derecha, -1 = izquierda
+
+            for(let i=0; i<amount; i++) {
+                // Cambiar dirección aleatoriamente
+                if(Math.random() > 0.8) currentDir *= -1;
+
+                let nextX = lastPoint.x + (2 * (currentDir === 1 ? 1 : 0)); // Avanza en X si va a derecha
+                let nextY = lastPoint.y + 2; // Siempre avanza en Y (hacia abajo)
+                
+                // Ajuste para dibujar zigzag real en canvas
+                // Simplificación: Camino lógico vs visual
+                // En este clon simple, usaremos coordenadas diagonales reales
+                
+                // Si dir es 1 (Derecha), x aumenta. Si es -1 (Izquierda), x disminuye.
+                // Y siempre aumenta (hacia "abajo" en isométrico)
+                
+                let dx = 3 * currentDir;
+                let dy = 2;
+
+                lastPoint = { x: lastPoint.x + dx, y: lastPoint.y + dy };
+                path.push(lastPoint);
+            }
+        }
+
+        // --- LÓGICA DE DIBUJO ISOMÉTRICO SIMULADO ---
+        // Transformamos coordenadas de mundo a pantalla
+        // Centro de pantalla es (canvas.width/2, canvas.height/2)
+        // El coche siempre se mantiene centrado más o menos
+        
+        function draw() {
+            // Fondo limpio
+            ctx.fillStyle = '#0a0a10';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Dibujar rejilla de fondo (opcional, para velocidad)
+            
+            ctx.save();
+            // Mover cámara para que el coche esté centrado
+            let camOffsetX = canvas.width/2 - car.x;
+            let camOffsetY = canvas.height/2 - car.y - 100; // Coche un poco más arriba
+            ctx.translate(camOffsetX, camOffsetY);
+
+            // DIBUJAR CAMINO
+            ctx.lineWidth = pathWidth;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.strokeStyle = '#2b1b3f'; // Color base camino
+            ctx.shadowBlur = 0;
+            
+            // Sombra del camino
+            ctx.beginPath();
+            if(path.length > 0) ctx.moveTo(path[0].x, path[0].y + 10);
+            for(let i=1; i<path.length; i++) ctx.lineTo(path[i].x, path[i].y + 10);
+            ctx.stroke();
+
+            // Camino Neón
+            ctx.strokeStyle = '#7000ff';
+            ctx.shadowColor = '#7000ff';
+            ctx.shadowBlur = 20;
+            ctx.beginPath();
+            if(path.length > 0) ctx.moveTo(path[0].x, path[0].y);
+            for(let i=1; i<path.length; i++) ctx.lineTo(path[i].x, path[i].y);
+            ctx.stroke();
+            
+            // Línea central decorativa
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.shadowBlur = 0;
+            ctx.beginPath();
+            if(path.length > 0) ctx.moveTo(path[0].x, path[0].y);
+            for(let i=1; i<path.length; i++) ctx.lineTo(path[i].x, path[i].y);
+            ctx.stroke();
+
+            // DIBUJAR COCHE
+            ctx.save();
+            ctx.translate(car.x, car.y);
+            // Rotar según dirección
+            let angle = car.dir === 1 ? 0.5 : -0.5; // Radianes aprox para diagonal
+            ctx.rotate(angle);
+            
+            ctx.fillStyle = car.color;
+            ctx.shadowColor = car.color;
+            ctx.shadowBlur = 15;
+            ctx.fillRect(-car.length/2, -car.width/2, car.length, car.width);
+            
+            // Detalles del coche (parabrisas)
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, -car.width/2 + 2, 8, car.width - 4);
+            
+            ctx.restore();
+
+            ctx.restore();
+        }
+
+        function update() {
+            if(!isRunning) return;
+
+            // Mover coche
+            // Si dir es 1, se mueve en diagonal derecha (+x, +y)
+            // Si dir es -1, se mueve en diagonal izquierda (-x, +y)
+            let moveSpeed = speed;
+            let dx = moveSpeed * 1.5 * car.dir; // X se mueve más para efecto visual
+            let dy = moveSpeed;
+
+            car.x += dx;
+            car.y += dy;
+
+            // Aumentar velocidad progresivamente
+            speed += 0.001;
+
+            // Puntuación (basada en distancia)
+            score = Math.floor(car.y / 10);
+            scoreEl.innerText = score;
+
+            // Generar más camino infinito
+            if(path.length < 1000) generatePath(50); // Nunca se acaba
+
+            // DETECCIÓN DE COLISIÓN (Caída)
+            // Verificar si el coche está cerca de algún punto del camino
+            // Esta es una colisión simplificada de distancia al "esqueleto" del camino
+            let onTrack = false;
+            // Solo revisamos los puntos cercanos al coche para optimizar
+            // Buscamos el segmento más cercano
+            
+            // Simplificación drástica para clon rápido:
+            // Revisamos si hay algún punto del camino a menos de X distancia
+            // Como el camino es una línea gruesa (lineWidth), si dist < lineWidth/2, estamos dentro
+            
+            // Optimización: Mirar solo los últimos puntos generados no sirve, hay que mirar por donde va el coche
+            // Miramos en un rango
+            
+            let safeDistance = pathWidth / 2 + 5; // Margen de error
+            
+            // Buscamos solo en los segmentos que tienen una Y similar a la del coche
+            for(let i=0; i<path.length; i++) {
+                let p = path[i];
+                if (Math.abs(p.y - car.y) < 20) { // Si estamos cerca en Y
+                    if (Math.abs(p.x - car.x) < safeDistance) {
+                        onTrack = true;
+                        break;
+                    }
+                }
+                // Si el punto ya quedó muy atrás, lo borramos para ahorrar memoria
+                if (p.y < car.y - 500) {
+                    path.shift();
+                    i--;
+                }
+            }
+
+            if (!onTrack) {
+                gameOver();
+            }
+        }
+
+        function loop() {
+            update();
+            draw();
+            if(!isGameOver) requestAnimationFrame(loop);
+        }
+
+        // INPUT (Click o Espacio)
+        function turn() {
+            if(isGameOver) return;
+            if(!isRunning) {
+                startGame();
+                return;
+            }
+            car.dir *= -1; // Cambiar dirección
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if(e.code === 'Space' || e.key === ' ') {
+                e.preventDefault(); // Evitar scroll
+                turn();
             }
         });
+        
+        document.addEventListener('mousedown', (e) => {
+            if(e.target.tagName !== 'BUTTON') turn();
+        });
+        
+        document.addEventListener('touchstart', (e) => {
+            if(e.target.tagName !== 'BUTTON') {
+                e.preventDefault();
+                turn();
+            }
+        }, {passive: false});
+
+        function startGame() {
+            startScreen.style.display = 'none';
+            initPath();
+            // Posicionar coche en el inicio del camino
+            car.x = path[0].x;
+            car.y = path[0].y;
+            car.dir = 1;
+            speed = 3;
+            score = 0;
+            scoreEl.innerText = 0;
+            isRunning = true;
+            isGameOver = false;
+            loop();
+        }
+
+        function gameOver() {
+            isRunning = false;
+            isGameOver = true;
+            finalScoreEl.innerText = score;
+            gameOverScreen.style.display = 'block';
+            
+            // Guardar en Firebase
+            if(window.guardarPuntaje) window.guardarPuntaje("Drift Boss", score);
+        }
+
+        function resetGame() {
+            gameOverScreen.style.display = 'none';
+            startGame();
+        }
+
+        // Render inicial
+        initPath();
+        car.x = path[0].x;
+        car.y = path[0].y;
+        draw();
+
     </script>
+
+    <script type="module" src="script.js"></script>
+
 </body>
 </html>
