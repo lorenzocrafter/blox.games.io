@@ -1,8 +1,7 @@
 // IMPORTAMOS FIREBASE
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-// NOTA: Agregamos onSnapshot y serverTimestamp aquí
-import { getFirestore, collection, doc, getDoc, setDoc, addDoc, query, where, orderBy, limit, getDocs, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, doc, getDoc, setDoc, query, where, orderBy, limit, getDocs, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // TU CONFIGURACIÓN
 const firebaseConfig = {
@@ -25,8 +24,12 @@ window.guardarPuntaje = async (juego, puntos) => {
     const user = auth.currentUser;
     if (user) {
         const alias = localStorage.getItem('customAlias') || user.displayName;
+        // Prioridad: Avatar Custom > Foto Google
+        const avatar = localStorage.getItem('customAvatar') || user.photoURL;
+        
         const docId = `${user.uid}_${juego.replace(/\s/g, '')}`; 
         const docRef = doc(db, "puntuaciones", docId);
+
         try {
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
@@ -35,19 +38,20 @@ window.guardarPuntaje = async (juego, puntos) => {
             }
             await setDoc(docRef, {
                 nombre: alias,
-                foto: user.photoURL,
+                foto: avatar, // Guardamos la foto elegida
                 juego: juego,
                 puntos: puntos,
                 fecha: new Date(),
                 uid: user.uid
             });
+            console.log(`Récord guardado para ${alias}`);
         } catch (e) { console.error(e); }
     }
 };
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    // --- 1. USUARIO Y ALIAS ---
+    // --- 1. USUARIO, ALIAS Y AVATAR ---
     const loginBtn = document.getElementById('loginBtn');
     const logoutBtn = document.getElementById('logoutBtn');
     const userInfo = document.getElementById('userInfo');
@@ -55,33 +59,98 @@ document.addEventListener('DOMContentLoaded', () => {
     const userName = document.getElementById('userName');
     const editNameBtn = document.getElementById('editNameBtn');
     
+    // Modal
     const aliasModal = document.getElementById('aliasModal');
     const newAliasInput = document.getElementById('newAliasInput');
     const saveAliasBtn = document.getElementById('saveAliasBtn');
     const cancelAliasBtn = document.getElementById('cancelAliasBtn');
+    
+    // Avatares
+    const avatarOptions = document.querySelectorAll('.avatar-option');
+    const googleAvatarOption = document.getElementById('googleAvatarOption');
+    let selectedAvatarUrl = null; // Variable temporal para el modal
 
-    function updateDisplayName(googleName) {
+    function updateProfileUI(user) {
         const storedAlias = localStorage.getItem('customAlias');
-        userName.innerText = storedAlias || googleName.split(' ')[0];
+        const storedAvatar = localStorage.getItem('customAvatar');
+        
+        // Texto
+        userName.innerText = storedAlias || user.displayName.split(' ')[0];
+        // Imagen
+        userPhoto.src = storedAvatar || user.photoURL;
+        
+        // Preparar opción de Google en el modal
+        if(googleAvatarOption) {
+            googleAvatarOption.src = user.photoURL;
+            googleAvatarOption.dataset.src = user.photoURL; // Guardamos la URL real
+        }
     }
 
     if(loginBtn) {
         loginBtn.addEventListener('click', () => signInWithPopup(auth, provider).catch(e => alert(e.message)));
-        logoutBtn.addEventListener('click', () => { signOut(auth).then(() => { localStorage.removeItem('bloxUsername'); location.reload(); }); });
-
-        if(editNameBtn) editNameBtn.addEventListener('click', () => { aliasModal.style.display = 'flex'; newAliasInput.value = userName.innerText; });
-        if(saveAliasBtn) saveAliasBtn.addEventListener('click', () => {
-            const newName = newAliasInput.value.trim();
-            if(newName.length > 0 && newName.length <= 12) {
-                localStorage.setItem('customAlias', newName); userName.innerText = newName; aliasModal.style.display = 'none';
-            } else alert("Nombre inválido.");
+        logoutBtn.addEventListener('click', () => { 
+            signOut(auth).then(() => { 
+                localStorage.removeItem('bloxUsername');
+                // No borramos customAlias/Avatar para que persistan en el navegador
+                location.reload(); 
+            }); 
         });
+
+        // ABRIR MODAL
+        if(editNameBtn) {
+            editNameBtn.addEventListener('click', () => {
+                aliasModal.style.display = 'flex';
+                newAliasInput.value = userName.innerText;
+                
+                // Resaltar avatar actual
+                const current = localStorage.getItem('customAvatar') || auth.currentUser.photoURL;
+                selectedAvatarUrl = current; // Iniciar con el actual
+                
+                avatarOptions.forEach(img => {
+                    img.classList.remove('selected');
+                    if(img.dataset.src === current || (img.id === 'googleAvatarOption' && !localStorage.getItem('customAvatar'))) {
+                        img.classList.add('selected');
+                    }
+                });
+            });
+        }
+
+        // SELECCIONAR AVATAR (Click en las caritas)
+        avatarOptions.forEach(img => {
+            img.addEventListener('click', () => {
+                avatarOptions.forEach(i => i.classList.remove('selected'));
+                img.classList.add('selected');
+                selectedAvatarUrl = img.dataset.src;
+            });
+        });
+
+        // GUARDAR TODO
+        if(saveAliasBtn) {
+            saveAliasBtn.addEventListener('click', () => {
+                const newName = newAliasInput.value.trim();
+                
+                if(newName.length > 0 && newName.length <= 12) {
+                    // Guardar Nombre
+                    localStorage.setItem('customAlias', newName);
+                    userName.innerText = newName;
+                    
+                    // Guardar Avatar
+                    if(selectedAvatarUrl) {
+                        localStorage.setItem('customAvatar', selectedAvatarUrl);
+                        userPhoto.src = selectedAvatarUrl;
+                    }
+
+                    aliasModal.style.display = 'none';
+                } else alert("Nombre inválido.");
+            });
+        }
+
         if(cancelAliasBtn) cancelAliasBtn.addEventListener('click', () => aliasModal.style.display = 'none');
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 loginBtn.style.display = 'none'; userInfo.style.display = 'flex';
-                userPhoto.src = user.photoURL; updateDisplayName(user.displayName);
+                updateProfileUI(user);
                 localStorage.setItem('bloxUsername', user.displayName);
             } else {
                 loginBtn.style.display = 'inline-block'; userInfo.style.display = 'none';
@@ -115,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = doc.data();
                 let rankIcon = `#${posicion}`;
                 if(posicion === 1) rankIcon = "🥇"; if(posicion === 2) rankIcon = "🥈"; if(posicion === 3) rankIcon = "🥉";
-                const fila = `<tr><td class="player-rank" style="font-size:1.2em;">${rankIcon}</td><td style="display:flex; align-items:center; gap:10px;"><img src="${data.foto}" style="width:24px; height:24px; border-radius:50%; border:1px solid #555;">${data.nombre}</td><td style="color:#aaa;">${data.juego}</td><td class="player-score" style="color:${posicion===1 ? '#00fff2' : '#fff'}">${data.puntos}</td></tr>`;
+                const fila = `<tr><td class="player-rank" style="font-size:1.2em;">${rankIcon}</td><td style="display:flex; align-items:center; gap:10px;"><img src="${data.foto}" style="width:30px; height:30px; border-radius:50%; border:2px solid #333; object-fit:cover;">${data.nombre}</td><td style="color:#aaa;">${data.juego}</td><td class="player-score" style="color:${posicion===1 ? '#00fff2' : '#fff'}">${data.puntos}</td></tr>`;
                 tablaRanking.innerHTML += fila;
                 posicion++;
             });
@@ -123,7 +192,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) { console.error(error); tablaRanking.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#ff4757;">⚠️ Error al cargar.</td></tr>`; }
     }
 
-    // --- 3. UI Y FILTROS ---
+    // --- 3. UI, FILTROS, CHAT (El resto del código se mantiene) ---
+    // (Pego el resto aquí para que esté completo)
     const searchInput = document.getElementById('searchInput');
     const buttons = document.querySelectorAll('.category-buttons .btn');
     const subButtons = document.querySelectorAll('.sub-filter');
@@ -146,12 +216,10 @@ document.addEventListener('DOMContentLoaded', () => {
     buttons.forEach(btn => { btn.addEventListener('click', function() { buttons.forEach(b => b.classList.remove('active')); this.classList.add('active'); currentCategory = this.getAttribute('data-filter'); subButtons.forEach(b => b.classList.remove('active')); document.querySelector('.sub-filter[data-tag="all"]').classList.add('active'); currentTag = 'all'; filterGames(); }); });
     subButtons.forEach(btn => { btn.addEventListener('click', function(e) { e.preventDefault(); subButtons.forEach(b => b.classList.remove('active')); this.classList.add('active'); currentTag = this.getAttribute('data-tag'); filterGames(); }); });
 
-    // Scroll Reveal
     const revealElements = document.querySelectorAll('.reveal');
     function checkReveal() { const windowHeight = window.innerHeight; revealElements.forEach((reveal) => { const elementTop = reveal.getBoundingClientRect().top; if (elementTop < windowHeight - 50) { reveal.classList.add('active'); reveal.style.opacity = "1"; } }); }
     window.addEventListener('scroll', checkReveal); checkReveal(); setTimeout(() => { document.querySelectorAll('.reveal').forEach(el => el.style.opacity = '1'); }, 500);
 
-    // Sonidos UI
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     let uiAudioCtx;
     const playHoverSound = () => {
@@ -164,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     document.querySelectorAll('.game-card, .btn, .nav-links a, .sub-filter, .rank-tab').forEach(el => el.addEventListener('mouseenter', playHoverSound));
 
-    // --- 6. CHAT GLOBAL (NUEVO) ---
+    // CHAT (Con soporte para avatar custom)
     const chatToggle = document.getElementById('chatToggleBtn');
     const chatContainer = document.getElementById('chatContainer');
     const closeChatBtn = document.getElementById('closeChatBtn');
@@ -173,52 +241,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const messagesBox = document.getElementById('chatMessages');
 
     if(chatToggle) {
-        // Abrir/Cerrar
         chatToggle.addEventListener('click', () => chatContainer.classList.add('open'));
         closeChatBtn.addEventListener('click', () => chatContainer.classList.remove('open'));
-
-        // Enviar Mensaje
         const sendMessage = async () => {
-            const text = chatInput.value.trim();
-            const user = auth.currentUser;
-            
-            if(!user) { alert("Debes iniciar sesión para chatear."); return; }
-            if(text === "") return;
-
+            const text = chatInput.value.trim(); const user = auth.currentUser;
+            if(!user) { alert("Debes iniciar sesión."); return; } if(text === "") return;
             const alias = localStorage.getItem('customAlias') || user.displayName.split(' ')[0];
-
-            try {
-                await addDoc(collection(db, "chat"), {
-                    usuario: alias,
-                    mensaje: text,
-                    timestamp: serverTimestamp() // Hora del servidor
-                });
-                chatInput.value = "";
-            } catch(e) { console.error("Error chat:", e); }
+            try { await addDoc(collection(db, "chat"), { usuario: alias, mensaje: text, timestamp: serverTimestamp() }); chatInput.value = ""; } catch(e) { console.error(e); }
         };
-
-        sendBtn.addEventListener('click', sendMessage);
-        chatInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMessage(); });
-
-        // ESCUCHAR MENSAJES (EN VIVO)
+        sendBtn.addEventListener('click', sendMessage); chatInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMessage(); });
         const qChat = query(collection(db, "chat"), orderBy("timestamp", "desc"), limit(20));
         onSnapshot(qChat, (snapshot) => {
-            messagesBox.innerHTML = ''; // Limpiar para reordenar
-            // Snapshot viene en orden descendente (nuevos primero), invertimos para chat
-            const msgs = [];
-            snapshot.forEach(doc => msgs.push(doc.data()));
-            msgs.reverse(); // Viejos arriba, nuevos abajo
-
+            messagesBox.innerHTML = ''; const msgs = []; snapshot.forEach(doc => msgs.push(doc.data())); msgs.reverse();
             msgs.forEach(data => {
-                if(!data.timestamp) return; // Ignorar mensajes en proceso de escritura
+                if(!data.timestamp) return; 
                 const isMine = auth.currentUser && (localStorage.getItem('customAlias') === data.usuario || auth.currentUser.displayName.includes(data.usuario));
-                
-                const div = document.createElement('div');
-                div.className = `message ${isMine ? 'mine' : ''}`;
+                const div = document.createElement('div'); div.className = `message ${isMine ? 'mine' : ''}`;
                 div.innerHTML = `<span class="msg-user">${data.usuario}:</span> <span class="msg-content">${data.mensaje}</span>`;
                 messagesBox.appendChild(div);
             });
-            // Auto scroll al fondo
             messagesBox.scrollTop = messagesBox.scrollHeight;
         });
     }
