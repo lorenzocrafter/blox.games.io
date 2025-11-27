@@ -1,11 +1,17 @@
+/* --- FUENTES E IMPORTACIONES --- */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&display=swap');
+
+/* --- CONFIGURACIÓN GENERAL --- */
 html {
-    scroll-behavior: smooth;
+    scroll-behavior: smooth; /* Desplazamiento suave al navegar */
 }
+
 body {
     margin: 0;
     font-family: 'Poppins', sans-serif;
-    background-color: #1a0a2e;
+    background-color: #050505; /* Fondo general muy oscuro */
     color: #fff;
+    overflow-x: hidden; /* Evitar scroll horizontal */
 }
 
 .container {
@@ -14,11 +20,17 @@ body {
     padding: 0 20px;
 }
 
-/* Navbar */
+/* --- NAVBAR (EFECTO CRISTAL) --- */
 .navbar {
-    background-color: #1a0a2e;
+    background-color: rgba(15, 5, 24, 0.85); /* Semitransparente */
+    backdrop-filter: blur(12px); /* Efecto borroso detrás */
+    -webkit-backdrop-filter: blur(12px); /* Soporte Safari */
     padding: 15px 0;
-    border-bottom: 1px solid #332145;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    position: sticky; /* Se queda pegado arriba */
+    top: 0;
+    z-index: 1000;
+    transition: all 0.3s ease;
 }
 
 .navbar .container {
@@ -27,196 +39,332 @@ body {
     align-items: center;
 }
 
-.navbar .logo img {
-    height: 60px; /* Un poco más grande para que se vea mejor */
-    width: auto; /* Asegura que el ancho se ajuste proporcionalmente */
+/* Nuevo Logo de Texto */
+.logo-text {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 900;
+    font-size: 26px;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: -1px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
+.logo-text span {
+    color: #00fff2;
+    text-shadow: 0 0 15px rgba(0, 255, 242, 0.5);
+}
+
+/* Enlaces de Navegación */
 .navbar .nav-links a {
-    color: #fff;
+    color: #aaa;
     text-decoration: none;
     margin-left: 30px;
     font-weight: 600;
+    font-size: 15px;
     position: relative;
-    padding-bottom: 5px;
+    transition: color 0.3s;
 }
 
-.navbar .nav-links a.active {
-    color: #e0b0ff;
+.navbar .nav-links a:hover, .navbar .nav-links a.active {
+    color: #fff;
 }
 
 .navbar .nav-links a.active::after {
     content: '';
     position: absolute;
     left: 0;
-    bottom: 0;
+    bottom: -5px;
     width: 100%;
     height: 2px;
-    background-color: #e0b0ff;
+    background-color: #00fff2;
+    box-shadow: 0 0 10px #00fff2;
 }
 
-.navbar .nav-links .arrow-down {
-    font-size: 12px;
-    margin-left: 5px;
-    vertical-align: middle;
-}
-
-/* Hero Section */
+/* --- HERO SECTION (BANNER) --- */
 .hero-section {
-    background: linear-gradient(to bottom, rgba(26, 10, 46, 0.8) 0%, rgba(26, 10, 46, 0.8) 100%),
-                url('fondo_circuito.jpg') no-repeat center center/cover;
-    padding: 80px 0;
+    /* Degradado elegante en lugar de imagen repetida */
+    background: radial-gradient(circle at top center, #1a0a2e 0%, #050505 80%);
+    padding: 100px 0 80px 0;
     text-align: center;
     position: relative;
-    overflow: hidden;
+}
+
+/* Efecto de luz ambiental */
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: -100px; left: 50%;
+    transform: translateX(-50%);
+    width: 600px; height: 400px;
+    background: rgba(112, 0, 255, 0.15);
+    filter: blur(80px);
+    border-radius: 50%;
+    pointer-events: none;
 }
 
 .hero-content {
     position: relative;
-    z-index: 1;
+    z-index: 2;
 }
 
-.hero-content img {
-    max-width: 60%; /* Ya lo tenías, limita el ancho */
-    height: auto;   /* Asegura que la altura se ajuste automáticamente */
-    max-height: 50vh; /* ¡NUEVO! Limita la altura máxima al 50% de la ventana */
-    display: block; /* Asegura que no haya espacios extra debajo */
-    margin: 0 auto; /* Centra la imagen si el max-width es menor que el contenedor */
+.hero-content h1 {
+    font-size: clamp(2.5rem, 5vw, 4rem); /* Tamaño adaptable */
+    margin: 0;
+    font-weight: 900;
+    letter-spacing: -2px;
+    line-height: 1.1;
 }
 
-/* Category Buttons */
+.hero-content p {
+    color: #8f8f9d;
+    font-size: 1.1rem;
+    margin-top: 15px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* --- SECCIÓN PRINCIPAL Y FILTROS --- */
+.main-content {
+    padding-top: 40px;
+}
+
 .category-buttons {
-    margin-top: 40px;
-    margin-bottom: 30px;
+    margin-bottom: 40px;
     display: flex;
     gap: 15px;
+    flex-wrap: wrap;
 }
 
-.category-buttons .btn {
-    background-color: #332145;
-    color: #fff;
-    border: none;
-    padding: 10px 25px;
-    border-radius: 20px;
+.btn {
     cursor: pointer;
-    font-size: 16px;
+    font-family: inherit;
+    transition: all 0.3s ease;
+}
+
+.btn.filter-btn {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ccc;
+    padding: 10px 25px;
+    border-radius: 25px;
+    font-size: 15px;
     font-weight: 600;
-    transition: all 0.3s ease; /* Animación añadida */
 }
 
-.category-buttons .btn.active {
-    background-color: #8c1dcb;
+.btn.filter-btn:hover, .btn.filter-btn.active {
+    background: #7000ff;
+    border-color: #7000ff;
+    color: #fff;
+    box-shadow: 0 0 20px rgba(112, 0, 255, 0.4);
+    transform: translateY(-2px);
 }
 
-.category-buttons .btn:hover {
-    background-color: #553e6e;
-    transform: scale(1.1); /* Animación añadida */
-    box-shadow: 0 0 10px #e0b0ff; /* Animación añadida */
-}
-
-/* Section Header */
+/* Sub-navegación (Nuevos/Clásicos) */
 .section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 30px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     padding-bottom: 15px;
-    border-bottom: 1px solid #332145;
 }
 
-.section-header .subsection-nav a {
-    color: #7f6e91;
+.subsection-nav a {
+    color: #666;
     text-decoration: none;
-    margin-right: 30px;
+    margin-right: 20px;
     font-weight: 600;
-    position: relative;
-    padding-bottom: 5px;
+    font-size: 14px;
+    transition: color 0.3s;
 }
 
-.section-header .subsection-nav a.active {
-    color: #e0b0ff;
+.subsection-nav a.active, .subsection-nav a:hover {
+    color: #fff;
 }
 
-.section-header .subsection-nav a.active::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    height: 2px;
-    background-color: #e0b0ff;
+.header-icons span {
+    color: #444;
+    font-size: 20px;
+    margin-left: 15px;
 }
 
-.section-header .header-icons span {
-    color: #7f6e91;
-    font-size: 24px;
-    margin-left: 20px;
-    cursor: pointer;
-}
-
-/* Game Cards - MEJORADO CON GRID */
 .section-title {
     font-size: 24px;
     font-weight: 700;
     margin-bottom: 25px;
     color: #fff;
-    border-left: 4px solid #e0b0ff;
+    border-left: 4px solid #00fff2;
     padding-left: 15px;
 }
 
+/* --- TARJETAS DE JUEGO (GRID) --- */
 .game-cards {
     display: grid;
-    /* Esto crea columnas automáticas. Mínimo 280px, máximo lo que sobre */
+    /* Columnas automáticas y adaptables */
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
     gap: 30px;
-    padding-bottom: 40px;
+    padding-bottom: 60px;
 }
 
 .game-card {
-    background-color: #2b1b3f;
-    border-radius: 15px;
+    background-color: #15151e;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     cursor: pointer;
     position: relative;
-    display: flex;       /* Nuevo */
-    flex-direction: column; /* Nuevo */
+    display: flex;
+    flex-direction: column;
 }
 
 .game-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 15px 30px rgba(140, 29, 203, 0.4);
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 255, 242, 0.15);
+    border-color: rgba(0, 255, 242, 0.3);
     z-index: 2;
 }
 
 .game-card img {
     width: 100%;
-    height: 250px; /* Altura fija para uniformidad */
-    object-fit: cover; /* Recorta la imagen para llenar el hueco sin deformar */
+    height: 220px;
+    object-fit: cover;
     display: block;
 }
 
-/* Información pequeña debajo de la imagen (Opcional pero queda pro) */
 .card-info {
-    padding: 15px;
-    background: #251636;
+    padding: 15px 20px;
+    background: #1a1a26;
+    border-top: 1px solid rgba(255, 255, 255, 0.02);
 }
 
 .card-info h3 {
-    margin: 0;
+    margin: 0 0 5px 0;
     font-size: 18px;
     color: #fff;
 }
 
 .card-info span {
     font-size: 12px;
-    color: #e0b0ff;
+    color: #888;
     text-transform: uppercase;
-    font-weight: bold;
+    font-weight: 700;
+    letter-spacing: 0.5px;
 }
 
-/* Efecto de ocultar tarjetas (para el filtro) */
-.game-card.hidden {
+/* --- PÁGINA DE RANKING --- */
+.ranking-container {
+    max-width: 800px;
+    margin: 40px auto;
+    background: #15151e;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(112, 0, 255, 0.2);
+}
+
+h2.rank-title {
+    text-align: center;
+    color: #fff;
+    font-size: 2.5rem;
+    margin-bottom: 40px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 0 0 20px rgba(112, 0, 255, 0.6);
+}
+
+.score-board {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 40px;
+}
+
+.score-board th {
+    background: #0a0a10;
+    color: #888;
+    padding: 15px;
+    text-align: left;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.score-board td {
+    padding: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: #ddd;
+    font-weight: 500;
+}
+
+.score-board tr:hover td {
+    background: rgba(255, 255, 255, 0.03);
+    color: #fff;
+}
+
+.player-rank { color: #e0b0ff !important; font-weight: bold; }
+.player-score { color: #00fff2 !important; text-align: right; font-family: monospace; font-size: 1.2rem; }
+
+/* Tarjeta de Estadísticas Personales */
+.my-stats {
+    background: linear-gradient(135deg, #7000ff 0%, #2b1b3f 100%);
+    padding: 25px;
+    border-radius: 15px;
+    margin-bottom: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(112, 0, 255, 0.3);
+}
+
+.my-stats h3 {
+    margin-top: 0;
+    color: #fff;
+    font-size: 1.2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 1.1rem;
+}
+
+.stat-val { color: #00fff2; font-weight: bold; text-shadow: 0 0 10px rgba(0, 255, 242, 0.4); }
+
+/* --- MODAL DE LOGIN --- */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.9);
     display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    backdrop-filter: blur(8px);
+}
+
+.modal-content {
+    background: #1a1a2e;
+    padding: 40px;
+    border-radius: 20px;
+    border: 1px solid #00fff2;
+    text-align: center;
+    box-shadow: 0 0 60px rgba(0, 255, 242, 0.15);
+    width: 90%;
+    max-width: 400px;
+    animation: slideIn 0.4s ease;
+}
+
+@keyframes slideIn {
+    from { transform: translateY(50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }
