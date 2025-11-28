@@ -1,7 +1,7 @@
 // --- CONFIGURACIÓN ---
-const ADMIN_EMAIL = "lorenzocrafteryt@gmail.com"; // TU EMAIL AQUÍ
+const ADMIN_EMAIL = "lorenzocrafteryt@gmail.com"; // TU EMAIL
 
-// IMPORTACIONES FIREBASE
+// IMPORTACIONES
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, increment, query, where, orderBy, limit, getDocs, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -57,21 +57,20 @@ window.comprarBorde = async (tipo, precio) => {
         const monedas = data.monedas || 0;
         const bordeDeseado = typeToClass(tipo);
 
-        // CHECK 1: ¿Ya tiene este borde puesto?
+        // CHECK 1: ¿Ya lo tiene puesto? (Para no cobrar doble)
         if (data.bordeActivo === bordeDeseado) {
             return showToast("¡Ya tienes este borde equipado!", "info");
         }
 
         // CHECK 2: ¿Tiene dinero?
         if (monedas >= precio) {
-            if (confirm(`¿Gastar ${precio} monedas en el borde ${tipo.toUpperCase()}?`)) {
-                await updateDoc(userRef, {
-                    monedas: increment(-precio),
-                    bordeActivo: bordeDeseado
-                });
-                showToast("¡Compra exitosa! Perfil actualizado.", "success");
-                aplicarBorde(bordeDeseado);
-            }
+            // COMPRA DIRECTA (Sin ventana fea)
+            await updateDoc(userRef, {
+                monedas: increment(-precio),
+                bordeActivo: bordeDeseado
+            });
+            showToast("¡Compra exitosa! Estilo equipado.", "success");
+            aplicarBorde(bordeDeseado);
         } else {
             showToast(`Te faltan ${precio - monedas} monedas.`, "error");
         }
@@ -82,16 +81,13 @@ window.comprarBorde = async (tipo, precio) => {
 window.guardarPuntaje = async (juego, puntos) => {
     const user = auth.currentUser;
     if (user) {
-        // Pagar monedas
         const monedas = Math.ceil(puntos/10);
         const userRef = doc(db, "usuarios", user.uid);
         try { await updateDoc(userRef, { monedas: increment(monedas) }); } catch(e){}
 
-        // Guardar Récord
         const alias = localStorage.getItem('customAlias') || user.displayName;
         const avatar = localStorage.getItem('customAvatar') || user.photoURL;
         
-        // Obtener borde actual para guardarlo en el ranking
         let borde = '';
         const snap = await getDoc(userRef);
         if(snap.exists()) borde = snap.data().bordeActivo || '';
@@ -102,7 +98,6 @@ window.guardarPuntaje = async (juego, puntos) => {
             const s = await getDoc(docRef);
             if(s.exists() && puntos <= s.data().puntos) return;
             await setDoc(docRef, { nombre: alias, foto: avatar, borde: borde, juego: juego, puntos: puntos, fecha: new Date(), uid: user.uid });
-            console.log("Récord guardado");
         } catch(e){}
     }
 };
@@ -122,7 +117,6 @@ window.toggleFav = (btn, gameId, event) => {
 window.deleteMessage = async (id) => { if(confirm("Borrar mensaje?")) await deleteDoc(doc(db, "chat", id)); };
 window.deleteRecord = async (id) => { if(confirm("Borrar récord?")) await deleteDoc(doc(db, "puntuaciones", id)); window.location.reload(); };
 
-
 // --- INICIO DE LA APP ---
 document.addEventListener('DOMContentLoaded', () => {
     const loginBtn = document.getElementById('loginBtn');
@@ -132,7 +126,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const userName = document.getElementById('userName');
     const coinDisplay = document.getElementById('coinDisplay');
     
-    // Modales
     const editNameBtn = document.getElementById('editNameBtn');
     const aliasModal = document.getElementById('aliasModal');
     const newAliasInput = document.getElementById('newAliasInput');
@@ -143,7 +136,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const shopBtn = document.getElementById('shopBtn');
     let selectedAvatarUrl = null;
 
-    // LOGIN LOGIC
     if(loginBtn) {
         loginBtn.addEventListener('click', () => signInWithPopup(auth, provider).catch(e => showToast(e.message, "error")));
         logoutBtn.addEventListener('click', () => { signOut(auth).then(() => { localStorage.removeItem('bloxUsername'); location.reload(); }); });
@@ -193,72 +185,42 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- RANKING LOGIC (Arreglada) ---
     const tablaRanking = document.getElementById('tabla-ranking-body');
     const rankTabs = document.querySelectorAll('.rank-tab');
 
-    async function cargarRanking(juegoSeleccionado) {
-        if(!tablaRanking) return;
-        tablaRanking.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px; color:#888;">Cargando Top de ${juegoSeleccionado}... ⏳</td></tr>`;
-        try {
-            const q = query(collection(db, "puntuaciones"), where("juego", "==", juegoSeleccionado), orderBy("puntos", "desc"), limit(10));
-            const snap = await getDocs(q);
-            
-            if(snap.empty) {
-                tablaRanking.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px;">Nadie ha jugado a ${juegoSeleccionado} aún.</td></tr>`;
-                return;
-            }
-
-            tablaRanking.innerHTML = "";
-            let p = 1;
-            snap.forEach(d => {
-                const dat = d.data();
-                const del = `<button class="delete-btn" onclick="deleteRecord('${d.id}')">🗑️</button>`;
-                const cls = dat.borde || '';
-                const stl = cls ? '' : 'border:2px solid #555;';
-                
-                // Icono de medalla
-                let rankDisplay = `#${p}`;
-                if(p===1) rankDisplay = "🥇";
-                if(p===2) rankDisplay = "🥈";
-                if(p===3) rankDisplay = "🥉";
-
-                tablaRanking.innerHTML += `<tr>
-                    <td class="player-rank" style="font-size:1.2em;">${rankDisplay}</td>
-                    <td style="display:flex;align-items:center;gap:10px;">
-                        <img src="${dat.foto}" class="${cls}" style="width:30px;height:30px;border-radius:50%;${stl};object-fit:cover;">
-                        ${dat.nombre} ${del}
-                    </td>
-                    <td style="color:#aaa;">${dat.juego}</td>
-                    <td class="player-score" style="color:${p===1 ? '#00fff2' : '#fff'}">${dat.puntos}</td>
-                </tr>`;
-                p++;
-            });
-        } catch(e) { console.error(e); }
-    }
-
     if (tablaRanking) {
-        // Cargar por defecto el que tenga la clase active en el HTML
-        const defaultTab = document.querySelector('.rank-tab.active');
-        if(defaultTab) cargarRanking(defaultTab.getAttribute('data-game'));
-
-        rankTabs.forEach(t => {
-            t.addEventListener('click', () => {
-                rankTabs.forEach(x => x.classList.remove('active'));
-                t.classList.add('active');
-                cargarRanking(t.getAttribute('data-game'));
-            });
-        });
+        const loadRank = async (game) => {
+            tablaRanking.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px;">Cargando...</td></tr>`;
+            try {
+                const q = query(collection(db, "puntuaciones"), where("juego", "==", game), orderBy("puntos", "desc"), limit(10));
+                const snap = await getDocs(q);
+                tablaRanking.innerHTML = "";
+                let p = 1;
+                snap.forEach(d => {
+                    const dat = d.data();
+                    const del = `<button class="delete-btn" onclick="deleteRecord('${d.id}')">🗑️</button>`;
+                    const cls = dat.borde || '';
+                    const stl = cls ? '' : 'border:2px solid #555;';
+                    let rIcon = p===1?'🥇':p===2?'🥈':p===3?'🥉':`#${p}`;
+                    tablaRanking.innerHTML += `<tr><td class="player-rank">${rIcon}</td><td style="display:flex;align-items:center;gap:10px;"><img src="${dat.foto}" class="${cls}" style="width:24px;height:24px;border-radius:50%;${stl};object-fit:cover;">${dat.nombre} ${del}</td><td>${dat.juego}</td><td class="player-score">${dat.puntos}</td></tr>`;
+                    p++;
+                });
+                if(snap.empty) tablaRanking.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px;">Sin datos.</td></tr>`;
+            } catch(e) { console.error(e); }
+        };
+        const def = document.querySelector('.rank-tab.active');
+        if(def) loadRank(def.getAttribute('data-game'));
+        rankTabs.forEach(t => t.addEventListener('click', () => {
+            rankTabs.forEach(x => x.classList.remove('active')); t.classList.add('active'); loadRank(t.getAttribute('data-game'));
+        }));
     }
 
-    // --- FILTROS Y UI ---
     const searchInput = document.getElementById('searchInput');
     const buttons = document.querySelectorAll('.category-buttons .btn');
     const subButtons = document.querySelectorAll('.sub-filter');
     const cards = document.querySelectorAll('.game-card');
     let currentCategory = 'all'; let currentTag = 'all'; let searchTerm = '';
 
-    // Restaurar corazones visualmente
     const savedFavs = JSON.parse(localStorage.getItem('bloxFavs')) || [];
     cards.forEach(card => { if (savedFavs.includes(card.getAttribute('data-game-id'))) { const btn = card.querySelector('.fav-btn'); if(btn) btn.classList.add('active'); } });
 
@@ -266,26 +228,19 @@ document.addEventListener('DOMContentLoaded', () => {
         cards.forEach(card => {
             const cardCat = card.getAttribute('data-category'); const cardTag = card.getAttribute('data-tag');
             const gameId = card.getAttribute('data-game-id'); const title = card.querySelector('h3').innerText.toLowerCase();
-            
             let matchCat = true;
-            if (currentCategory === 'favoritos') {
-                const myFavs = JSON.parse(localStorage.getItem('bloxFavs')) || [];
-                matchCat = myFavs.includes(gameId);
-            } else if (currentCategory !== 'all') { matchCat = (cardCat === currentCategory); }
-            
+            if (currentCategory === 'favoritos') { const myFavs = JSON.parse(localStorage.getItem('bloxFavs')) || []; matchCat = myFavs.includes(gameId); } 
+            else if (currentCategory !== 'all') { matchCat = (cardCat === currentCategory); }
             let matchTag = true; if (currentTag !== 'all') matchTag = (cardTag === currentTag);
             const matchSearch = title.includes(searchTerm);
-
             if (matchCat && matchTag && matchSearch) { card.style.display = 'flex'; setTimeout(() => card.style.opacity = '1', 10); } 
             else { card.style.display = 'none'; card.style.opacity = '0'; }
         });
     }
-
     if(searchInput) searchInput.addEventListener('input', (e) => { searchTerm = e.target.value.toLowerCase(); filterGames(); });
     buttons.forEach(btn => { btn.addEventListener('click', function() { buttons.forEach(b => b.classList.remove('active')); this.classList.add('active'); currentCategory = this.getAttribute('data-filter'); if(currentCategory === 'favoritos') { subButtons.forEach(b => b.classList.remove('active')); currentTag = 'all'; } filterGames(); }); });
     subButtons.forEach(btn => { btn.addEventListener('click', function(e) { e.preventDefault(); subButtons.forEach(b => b.classList.remove('active')); this.classList.add('active'); currentTag = this.getAttribute('data-tag'); filterGames(); }); });
 
-    // Chat Global
     const chatToggle = document.getElementById('chatToggleBtn');
     const chatContainer = document.getElementById('chatContainer');
     const closeChatBtn = document.getElementById('closeChatBtn');
@@ -312,12 +267,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Scroll Reveal
     const revealElements = document.querySelectorAll('.reveal');
     function checkReveal() { const windowHeight = window.innerHeight; revealElements.forEach((reveal) => { if (reveal.getBoundingClientRect().top < windowHeight - 50) { reveal.classList.add('active'); reveal.style.opacity = "1"; } }); }
     window.addEventListener('scroll', checkReveal); checkReveal(); setTimeout(() => { document.querySelectorAll('.reveal').forEach(el => el.style.opacity = '1'); }, 500);
-    
-    // Sonidos
+
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     let uiAudioCtx;
     const playHoverSound = () => { if (!uiAudioCtx) uiAudioCtx = new AudioContext(); if (uiAudioCtx.state === 'suspended') uiAudioCtx.resume(); const osc = uiAudioCtx.createOscillator(); const gain = uiAudioCtx.createGain(); osc.connect(gain); gain.connect(uiAudioCtx.destination); osc.type = 'sine'; osc.frequency.setValueAtTime(800, uiAudioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1200, uiAudioCtx.currentTime + 0.05); gain.gain.setValueAtTime(0.02, uiAudioCtx.currentTime); gain.gain.linearRampToValueAtTime(0, uiAudioCtx.currentTime + 0.05); osc.start(); osc.stop(uiAudioCtx.currentTime + 0.05); };
