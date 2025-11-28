@@ -1,5 +1,5 @@
 // --- CONFIGURACIÓN ---
-const ADMIN_EMAIL = "lorenzocrafteryt@gmail.com"; // TU EMAIL AQUÍ
+const ADMIN_EMAIL = "lorenzocrafteryt@gmail.com"; // TU EMAIL
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -20,12 +20,29 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
-// --- FUNCIONES GLOBALES ---
+// --- FUNCIÓN VISUAL: MOSTRAR NOTIFICACIÓN ---
+window.showToast = (msg, type = 'info') => {
+    const container = document.getElementById('toast-container');
+    if(!container) return alert(msg); // Fallback
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    let icon = 'ℹ️';
+    if(type === 'success') icon = '✅';
+    if(type === 'error') icon = '🚫';
+    
+    toast.innerHTML = `<span>${icon}</span> ${msg}`;
+    container.appendChild(toast);
+    
+    // Se elimina solo por CSS (animation), pero lo quitamos del DOM
+    setTimeout(() => { toast.remove(); }, 3000);
+};
 
-// Tienda
+// --- TIENDA ---
 window.comprarBorde = async (tipo, precio) => {
     const user = auth.currentUser;
-    if (!user) return alert("Debes iniciar sesión.");
+    if (!user) return showToast("Debes iniciar sesión.", "error");
     const userRef = doc(db, "usuarios", user.uid);
     const docSnap = await getDoc(userRef);
     if (docSnap.exists()) {
@@ -33,16 +50,19 @@ window.comprarBorde = async (tipo, precio) => {
         if (monedas >= precio) {
             if (confirm(`¿Comprar borde por ${precio}?`)) {
                 await updateDoc(userRef, { monedas: increment(-precio), bordeActivo: typeToClass(tipo) });
-                alert("¡Compra exitosa!"); aplicarBorde(typeToClass(tipo));
+                showToast("¡Compra exitosa!", "success"); 
+                aplicarBorde(typeToClass(tipo));
             }
-        } else alert("No tienes suficientes monedas.");
+        } else {
+            showToast(`Te faltan ${precio - monedas} monedas.`, "error");
+        }
     }
 };
 
 function typeToClass(t) { return t==='gold'?'border-gold':t==='red'?'border-red':t==='rainbow'?'border-rainbow':''; }
 function aplicarBorde(c) { const i=document.getElementById('userPhoto'); if(i&&c){ i.classList.remove('border-gold','border-red','border-rainbow'); i.classList.add(c); i.style.border='none'; } }
 
-// Guardar Puntos
+// --- GUARDAR PUNTOS ---
 window.guardarPuntaje = async (juego, puntos) => {
     const user = auth.currentUser;
     if (user) {
@@ -62,25 +82,21 @@ window.guardarPuntaje = async (juego, puntos) => {
             const s = await getDoc(docRef);
             if(s.exists() && puntos <= s.data().puntos) return;
             await setDoc(docRef, { nombre: alias, foto: avatar, borde: borde, juego: juego, puntos: puntos, fecha: new Date(), uid: user.uid });
+            console.log("Récord guardado");
         } catch(e){}
     }
 };
 
-// Favoritos
+// --- RESTO DE FUNCIONES (Favoritos, Admin) ---
 window.toggleFav = (btn, gameId, event) => {
-    event.stopPropagation();
-    btn.classList.toggle('active');
+    event.stopPropagation(); btn.classList.toggle('active');
     let favs = JSON.parse(localStorage.getItem('bloxFavs')) || [];
     if (btn.classList.contains('active')) { if (!favs.includes(gameId)) favs.push(gameId); } 
     else { favs = favs.filter(id => id !== gameId); }
     localStorage.setItem('bloxFavs', JSON.stringify(favs));
-    
-    // Si estamos filtrando por favoritos, actualizar vista al instante
+    // Refrescar si estamos en filtro favs
     const activeFilter = document.querySelector('.filter-btn.active');
-    if(activeFilter && activeFilter.getAttribute('data-filter') === 'favoritos') {
-        // Disparar evento de filtrado manualmente
-        activeFilter.click();
-    }
+    if(activeFilter && activeFilter.getAttribute('data-filter') === 'favoritos') activeFilter.click();
 };
 
 window.deleteMessage = async (id) => { if(confirm("Borrar?")) await deleteDoc(doc(db, "chat", id)); };
@@ -101,12 +117,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveAliasBtn = document.getElementById('saveAliasBtn');
     const cancelAliasBtn = document.getElementById('cancelAliasBtn');
     const avatarOptions = document.querySelectorAll('.avatar-option');
+    const googleAvatarOption = document.getElementById('googleAvatarOption');
     const shopBtn = document.getElementById('shopBtn');
     let selectedAvatarUrl = null;
 
     // LOGIN & UI
     if(loginBtn) {
-        loginBtn.addEventListener('click', () => signInWithPopup(auth, provider).catch(e => alert(e.message)));
+        loginBtn.addEventListener('click', () => signInWithPopup(auth, provider).catch(e => showToast(e.message, "error")));
         logoutBtn.addEventListener('click', () => { signOut(auth).then(() => { localStorage.removeItem('bloxUsername'); location.reload(); }); });
 
         if(editNameBtn) editNameBtn.addEventListener('click', () => { aliasModal.style.display = 'flex'; newAliasInput.value = userName.innerText; });
@@ -125,6 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('customAlias', newName); userName.innerText = newName;
                 if(selectedAvatarUrl) { localStorage.setItem('customAvatar', selectedAvatarUrl); userPhoto.src = selectedAvatarUrl; }
                 aliasModal.style.display = 'none';
+                showToast("Perfil actualizado", "success");
             }
         });
 
@@ -135,6 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 loginBtn.style.display = 'none'; userInfo.style.display = 'flex';
                 userName.innerText = localStorage.getItem('customAlias') || user.displayName.split(' ')[0];
                 userPhoto.src = localStorage.getItem('customAvatar') || user.photoURL;
+                if(googleAvatarOption) { googleAvatarOption.src = user.photoURL; googleAvatarOption.dataset.src = user.photoURL; }
                 
                 const userRef = doc(db, "usuarios", user.uid);
                 onSnapshot(userRef, (s) => {
@@ -175,10 +194,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(snap.empty) tablaRanking.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px;">Sin datos.</td></tr>`;
             } catch(e) { console.error(e); }
         };
-        
         const def = document.querySelector('.rank-tab.active');
         if(def) loadRank(def.getAttribute('data-game'));
-
         rankTabs.forEach(t => t.addEventListener('click', () => {
             rankTabs.forEach(x => x.classList.remove('active'));
             t.classList.add('active');
@@ -186,84 +203,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }));
     }
 
-    // --- CORRECCIÓN DE FILTROS ---
+    // --- FILTROS, CHAT, ETC ---
     const searchInput = document.getElementById('searchInput');
     const buttons = document.querySelectorAll('.category-buttons .btn');
     const subButtons = document.querySelectorAll('.sub-filter');
     const cards = document.querySelectorAll('.game-card');
-    
-    let currentCategory = 'all';
-    let currentTag = 'all';
-    let searchTerm = '';
-
-    // Cargar favoritos visualmente al inicio
+    let currentCategory = 'all'; let currentTag = 'all'; let searchTerm = '';
     const savedFavs = JSON.parse(localStorage.getItem('bloxFavs')) || [];
-    cards.forEach(card => {
-        if (savedFavs.includes(card.getAttribute('data-game-id'))) {
-            const btn = card.querySelector('.fav-btn');
-            if(btn) btn.classList.add('active');
-        }
-    });
+    cards.forEach(card => { if (savedFavs.includes(card.getAttribute('data-game-id'))) { const btn = card.querySelector('.fav-btn'); if(btn) btn.classList.add('active'); } });
 
     function filterGames() {
         cards.forEach(card => {
-            const cardCat = card.getAttribute('data-category');
-            const cardTag = card.getAttribute('data-tag');
-            const gameId = card.getAttribute('data-game-id');
-            const title = card.querySelector('h3').innerText.toLowerCase();
-
+            const cardCat = card.getAttribute('data-category'); const cardTag = card.getAttribute('data-tag');
+            const gameId = card.getAttribute('data-game-id'); const title = card.querySelector('h3').innerText.toLowerCase();
             let matchCat = true;
-            if (currentCategory === 'favoritos') {
-                const myFavs = JSON.parse(localStorage.getItem('bloxFavs')) || [];
-                matchCat = myFavs.includes(gameId);
-            } else if (currentCategory !== 'all') {
-                matchCat = (cardCat === currentCategory);
-            }
-
-            let matchTag = true;
-            if (currentTag !== 'all') matchTag = (cardTag === currentTag);
-
+            if (currentCategory === 'favoritos') { const myFavs = JSON.parse(localStorage.getItem('bloxFavs')) || []; matchCat = myFavs.includes(gameId); } 
+            else if (currentCategory !== 'all') { matchCat = (cardCat === currentCategory); }
+            let matchTag = true; if (currentTag !== 'all') matchTag = (cardTag === currentTag);
             const matchSearch = title.includes(searchTerm);
-
-            if (matchCat && matchTag && matchSearch) {
-                card.style.display = 'flex';
-                // Forzamos opacidad 1 para asegurar visibilidad
-                setTimeout(() => card.style.opacity = '1', 10);
-            } else {
-                card.style.display = 'none';
-                card.style.opacity = '0';
-            }
+            if (matchCat && matchTag && matchSearch) { card.style.display = 'flex'; setTimeout(() => card.style.opacity = '1', 10); } 
+            else { card.style.display = 'none'; card.style.opacity = '0'; }
         });
     }
 
     if(searchInput) searchInput.addEventListener('input', (e) => { searchTerm = e.target.value.toLowerCase(); filterGames(); });
+    buttons.forEach(btn => { btn.addEventListener('click', function() { buttons.forEach(b => b.classList.remove('active')); this.classList.add('active'); currentCategory = this.getAttribute('data-filter'); if(currentCategory === 'favoritos') { subButtons.forEach(b => b.classList.remove('active')); currentTag = 'all'; } filterGames(); }); });
+    subButtons.forEach(btn => { btn.addEventListener('click', function(e) { e.preventDefault(); subButtons.forEach(b => b.classList.remove('active')); this.classList.add('active'); currentTag = this.getAttribute('data-tag'); filterGames(); }); });
 
-    buttons.forEach(btn => {
-        btn.addEventListener('click', function() {
-            buttons.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            currentCategory = this.getAttribute('data-filter');
-            
-            // Si vamos a favoritos, reseteamos el subfiltro
-            if(currentCategory === 'favoritos') {
-                subButtons.forEach(b => b.classList.remove('active'));
-                currentTag = 'all';
-            }
-            filterGames();
-        });
-    });
-
-    subButtons.forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            subButtons.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            currentTag = this.getAttribute('data-tag');
-            filterGames();
-        });
-    });
-
-    // CHAT GLOBAL
     const chatToggle = document.getElementById('chatToggleBtn');
     const chatContainer = document.getElementById('chatContainer');
     const closeChatBtn = document.getElementById('closeChatBtn');
@@ -274,63 +240,28 @@ document.addEventListener('DOMContentLoaded', () => {
     if(chatToggle) {
         chatToggle.addEventListener('click', () => chatContainer.classList.add('open'));
         closeChatBtn.addEventListener('click', () => chatContainer.classList.remove('open'));
-        
         const sendMessage = async () => {
-            const text = chatInput.value.trim();
-            const user = auth.currentUser;
-            if(!user) return alert("Inicia sesión");
-            if(!text) return;
-            
+            const text = chatInput.value.trim(); const user = auth.currentUser;
+            if(!user) { showToast("Debes iniciar sesión.", "error"); return; } if(text === "") return;
             const alias = localStorage.getItem('customAlias') || user.displayName.split(' ')[0];
             const avatar = localStorage.getItem('customAvatar') || user.photoURL;
-            
-            try {
-                await addDoc(collection(db, "chat"), {
-                    usuario: alias,
-                    foto: avatar,
-                    mensaje: text,
-                    timestamp: serverTimestamp()
-                });
-                chatInput.value = "";
-            } catch(e){ console.error(e); }
+            try { await addDoc(collection(db, "chat"), { usuario: alias, foto: avatar, mensaje: text, timestamp: serverTimestamp() }); chatInput.value = ""; } catch(e){ console.error(e); }
         };
-
-        sendBtn.addEventListener('click', sendMessage);
-        chatInput.addEventListener('keypress', (e) => { if(e.key==='Enter') sendMessage(); });
-
+        sendBtn.addEventListener('click', sendMessage); chatInput.addEventListener('keypress', (e) => { if(e.key==='Enter') sendMessage(); });
         const qChat = query(collection(db, "chat"), orderBy("timestamp", "desc"), limit(20));
         onSnapshot(qChat, (snap) => {
-            messagesBox.innerHTML = '';
-            const msgs = [];
-            snap.forEach(d => msgs.push({id:d.id, ...d.data()}));
-            msgs.reverse();
-            msgs.forEach(d => {
-                if(!d.timestamp) return;
-                const isMine = auth.currentUser && (localStorage.getItem('customAlias')===d.usuario || auth.currentUser.displayName.includes(d.usuario));
-                const delBtn = `<button class="delete-btn" onclick="deleteMessage('${d.id}')" style="color:red;font-size:10px;margin-left:5px;">🗑️</button>`;
-                const img = d.foto || "https://api.dicebear.com/9.x/bottts/svg?seed=bot";
-                messagesBox.innerHTML += `
-                    <div class="message ${isMine?'mine':''}" style="display:flex; gap:8px; align-items:start; margin-bottom:8px;">
-                        <img src="${img}" style="width:20px;height:20px;border-radius:50%;">
-                        <div><span class="msg-user">${d.usuario}${delBtn}:</span> <span class="msg-content">${d.mensaje}</span></div>
-                    </div>`;
-            });
+            messagesBox.innerHTML = ''; const msgs = []; snap.forEach(d => msgs.push({id:d.id, ...d.data()})); msgs.reverse();
+            msgs.forEach(d => { if(!d.timestamp) return; const isMine = auth.currentUser && (localStorage.getItem('customAlias')===d.usuario || auth.currentUser.displayName.includes(d.usuario)); const delBtn = `<button class="delete-btn" onclick="deleteMessage('${d.id}')" style="color:red;font-size:10px;margin-left:5px;">🗑️</button>`; const img = d.foto || "https://api.dicebear.com/9.x/bottts/svg?seed=bot"; messagesBox.innerHTML += `<div class="message ${isMine?'mine':''}" style="display:flex; gap:8px; align-items:start; margin-bottom:8px;"><img src="${img}" style="width:20px;height:20px;border-radius:50%;"><div><span class="msg-user">${d.usuario}${delBtn}:</span> <span class="msg-content">${d.mensaje}</span></div></div>`; });
             messagesBox.scrollTop = messagesBox.scrollHeight;
         });
     }
 
-    // Scroll Reveal & Audio (Mantenemos)
     const revealElements = document.querySelectorAll('.reveal');
-    function checkReveal() { 
-        const windowHeight = window.innerHeight; 
-        revealElements.forEach((reveal) => { 
-            if (reveal.getBoundingClientRect().top < windowHeight - 50) { 
-                reveal.classList.add('active'); 
-                reveal.style.opacity = "1"; 
-            } 
-        }); 
-    }
-    window.addEventListener('scroll', checkReveal); 
-    checkReveal();
-    setTimeout(() => { document.querySelectorAll('.reveal').forEach(el => el.style.opacity = '1'); }, 500);
+    function checkReveal() { const windowHeight = window.innerHeight; revealElements.forEach((reveal) => { if (reveal.getBoundingClientRect().top < windowHeight - 50) { reveal.classList.add('active'); reveal.style.opacity = "1"; } }); }
+    window.addEventListener('scroll', checkReveal); checkReveal(); setTimeout(() => { document.querySelectorAll('.reveal').forEach(el => el.style.opacity = '1'); }, 500);
+
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let uiAudioCtx;
+    const playHoverSound = () => { if (!uiAudioCtx) uiAudioCtx = new AudioContext(); if (uiAudioCtx.state === 'suspended') uiAudioCtx.resume(); const osc = uiAudioCtx.createOscillator(); const gain = uiAudioCtx.createGain(); osc.connect(gain); gain.connect(uiAudioCtx.destination); osc.type = 'sine'; osc.frequency.setValueAtTime(800, uiAudioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1200, uiAudioCtx.currentTime + 0.05); gain.gain.setValueAtTime(0.02, uiAudioCtx.currentTime); gain.gain.linearRampToValueAtTime(0, uiAudioCtx.currentTime + 0.05); osc.start(); osc.stop(uiAudioCtx.currentTime + 0.05); };
+    document.querySelectorAll('.game-card, .btn, .nav-links a, .sub-filter, .rank-tab').forEach(el => el.addEventListener('mouseenter', playHoverSound));
 });
