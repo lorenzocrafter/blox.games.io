@@ -15,7 +15,9 @@
     <header class="navbar">
         <div class="container">
             <div class="logo">
-                <a href="#" class="logo-text">B-BOX <span>GAMES</span></a>
+                <a href="#" class="logo-text">
+                    B-BOX <span>GAMES</span>
+                </a>
             </div>
             
             <nav class="nav-links">
@@ -23,7 +25,7 @@
                 <a href="#juegos">Juegos</a>
                 <a href="ranking.html">Ranking</a>
                 
-                <div id="user-area" style="display: flex; align-items: center; margin-left: 30px; gap: 15px;">
+                <div id="user-area" style="display: flex; align-items: center; margin-left: 20px; gap: 15px;">
                     
                     <div id="coinDisplay" class="coin-badge">💰 0</div>
 
@@ -33,10 +35,14 @@
                     
                     <div id="userInfo" style="display: none; align-items: center; gap: 10px;">
                         <img id="userPhoto" src="" alt="User" style="width: 35px; height: 35px; border-radius: 50%; border: 2px solid #00fff2; box-shadow: 0 0 10px #00fff2;">
+                        
+                        <button id="shopBtn" class="btn" style="background: #ffcc00; color: #000; padding: 5px 10px; font-size: 11px; border-radius: 10px; font-weight: bold; border: none; cursor: pointer;">🛒 TIENDA</button>
+
                         <div style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2;">
                             <span id="userName" style="color: #fff; font-weight: 600; font-size: 14px;"></span>
-                            <button id="editNameBtn" class="edit-name-btn" style="padding: 0; font-size: 11px; margin-top: 2px;">✎ Cambiar Alias</button>
+                            <button id="editNameBtn" class="edit-name-btn" style="padding: 0; font-size: 11px; margin-top: 2px;">✎ Editar</button>
                         </div>
+                        
                         <button id="logoutBtn" style="background: rgba(255, 71, 87, 0.2); border: 1px solid #ff4757; color: #ff4757; padding: 4px 10px; border-radius: 6px; cursor: pointer; margin-left: 5px;">✕</button>
                     </div>
                 </div>
@@ -116,16 +122,13 @@
                 </div>
             </div>
 
-           <div class="game-card" data-category="accion" data-tag="popular" data-game-id="escape">
-    <div class="fav-btn" onclick="toggleFav(this, 'escape', event)">♥</div>
-    <div onclick="window.location.href='escape.html'">
-        <img src="portada_escape.jpg" alt="Escape Road">
-        <div class="card-info">
-            <h3>Escape Road</h3>
-            <span style="color:#ffcc00">★ Viral</span>
-        </div>
-    </div>
-</div>
+            <div class="game-card" data-category="accion" data-tag="popular" data-game-id="escape">
+                <div class="fav-btn" onclick="toggleFav(this, 'escape', event)">♥</div>
+                <div onclick="window.location.href='escape.html'">
+                    <img src="portada_escape.jpg" alt="Escape Road">
+                    <div class="card-info"><h3>Escape Road</h3><span style="color:#ffcc00">★ Viral</span></div>
+                </div>
+            </div>
 
             <div class="game-card" data-category="puzzle" data-tag="nuevo" data-game-id="hextris">
                 <div class="fav-btn" onclick="toggleFav(this, 'hextris', event)">♥</div>
@@ -162,14 +165,40 @@
         </div>
     </section>
 
+    <div id="shopModal" class="modal-overlay">
+        <div class="modal-content" style="border-color: #ffcc00; box-shadow: 0 0 40px rgba(255, 204, 0, 0.3);">
+            <h3 style="color: #ffcc00; margin-top: 0;">TIENDA B-COINS</h3>
+            <p style="color: #aaa; font-size: 14px;">Compra bordes épicos para tu perfil.</p>
+            
+            <div class="shop-items" style="display: flex; gap: 15px; justify-content: center; margin: 20px 0;">
+                <div class="shop-item" onclick="comprarBorde('gold', 100)" style="cursor: pointer; border: 1px solid #444; padding: 10px; border-radius: 10px;">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; border: 3px solid #ffd700; margin: 0 auto;"></div>
+                    <p style="margin: 5px 0 0; color: #ffd700; font-weight: bold;">100 💰</p>
+                    <span style="font-size: 10px; color: #888;">GOLD</span>
+                </div>
+                <div class="shop-item" onclick="comprarBorde('red', 250)" style="cursor: pointer; border: 1px solid #444; padding: 10px; border-radius: 10px;">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; border: 3px solid #ff4757; box-shadow: 0 0 10px #ff4757; margin: 0 auto;"></div>
+                    <p style="margin: 5px 0 0; color: #ff4757; font-weight: bold;">250 💰</p>
+                    <span style="font-size: 10px; color: #888;">RED</span>
+                </div>
+                <div class="shop-item" onclick="comprarBorde('rainbow', 500)" style="cursor: pointer; border: 1px solid #444; padding: 10px; border-radius: 10px;">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; border: 3px solid white; background: linear-gradient(45deg, red, blue, lime); margin: 0 auto;"></div>
+                    <p style="margin: 5px 0 0; color: #fff; font-weight: bold;">500 💰</p>
+                    <span style="font-size: 10px; color: #888;">RGB</span>
+                </div>
+            </div>
+            <button onclick="document.getElementById('shopModal').style.display='none'" class="btn" style="background: #333; color: #fff; padding: 8px 20px; border-radius: 20px; border: none;">Cerrar</button>
+        </div>
+    </div>
+
     <div id="aliasModal" class="modal-overlay">
         <div class="modal-content" style="border: 1px solid #7000ff; box-shadow: 0 0 40px rgba(112, 0, 255, 0.4); padding: 40px 30px; max-width: 400px; width: 90%; display: flex; flex-direction: column; align-items: center;">
-            <h3 style="color: #fff; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 2px;">Editar Perfil</h3>
-            <label style="color: #aaa; font-size: 12px; margin-bottom: 5px; width: 85%;">GAMERTAG</label>
+            <h3 style="color: #fff; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 1px;">Editar Perfil</h3>
+            <label style="color: #aaa; font-size: 12px; margin-bottom: 5px; width: 85%; text-align:left;">GAMERTAG</label>
             <input type="text" id="newAliasInput" class="search-input" style="width: 85%; text-align: center; margin-bottom: 25px; font-weight: bold; color: #00fff2; font-size: 18px; padding: 12px; box-sizing: border-box;" placeholder="Tu Nombre..." maxlength="12" autocomplete="off">
-            <label style="color: #aaa; font-size: 12px; margin-bottom: 10px; width: 85%;">ELIGE TU AVATAR</label>
+            <label style="color: #aaa; font-size: 12px; margin-bottom: 10px; width: 85%; text-align:left;">ELIGE TU AVATAR</label>
             <div class="avatar-grid" style="display: flex; gap: 10px; justify-content: center; margin-bottom: 25px; flex-wrap: wrap;">
-                <img src="" id="googleAvatarOption" class="avatar-option selected" style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid #00fff2;">
+                <img src="" id="googleAvatarOption" class="avatar-option selected" style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid #00fff2; cursor: pointer; padding: 2px;">
                 <img src="https://api.dicebear.com/9.x/avataaars/svg?seed=Felix" class="avatar-option" data-src="https://api.dicebear.com/9.x/avataaars/svg?seed=Felix">
                 <img src="https://api.dicebear.com/9.x/bottts/svg?seed=Cyborg" class="avatar-option" data-src="https://api.dicebear.com/9.x/bottts/svg?seed=Cyborg">
                 <img src="https://api.dicebear.com/9.x/avataaars/svg?seed=Aneka" class="avatar-option" data-src="https://api.dicebear.com/9.x/avataaars/svg?seed=Aneka">
